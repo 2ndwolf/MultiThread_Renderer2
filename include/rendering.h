@@ -95,7 +95,7 @@ namespace SDLA {
     typedef struct {
       SpriteInfo* info = new SpriteInfo();
       bool updated = false;
-      std::atomic<bool> pendingErase = false;
+      std::atomic<bool> pendingErase{false};
       std::map<SDLA::ID, std::shared_ptr<Sprite>> sprites;
 
     } SpriteGroup;
@@ -107,7 +107,8 @@ namespace SDLA {
       renderThread = std::thread(mane, this);
     }
 
-    ~Rendering(){renderThread.detach();};
+    // TODO fix this
+    // ~Rendering(){renderThread.detach();};
 
     std::shared_ptr<Window> newWindow(
       int layercount,
@@ -131,7 +132,7 @@ namespace SDLA {
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groups;
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groupsMirror;
         Vec2 offset;
-        std::atomic<bool> hidden = false;
+        std::atomic<bool> hidden{false};
         SDLA::ID groupCount = 0;
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groupBuffer;
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groupBufferOld;
@@ -187,7 +188,7 @@ namespace SDLA {
       void display();
 
       void close(){pendingErase = true;};
-      std::atomic<bool> pendingErase = false; 
+      std::atomic<bool> pendingErase{false}; 
 
     };
 
@@ -228,11 +229,11 @@ namespace SDLA {
       SDL_Rect* const getSDLRect(){return &sdlRect;};
       SpriteInfo* const getInfo(){return info;};
       // void render();
-      std::atomic<bool> pendingErase = false;
+      std::atomic<bool> pendingErase{false};
       // ~Sprite();
       Sprite(SpriteInfo* info);
 
-      std::atomic<bool> texQueued = true;
+      std::atomic<bool> texQueued{true};
       std::string fileName;
       SDL_Texture* texture;
       SDLA::ID ownerGroupID;
@@ -244,7 +245,7 @@ namespace SDLA {
       static std::mutex mtx;
       static std::shared_ptr<Window> win;
       std::shared_ptr<Window> myWin;
-      std::atomic<bool> hidden = false;
+      std::atomic<bool> hidden{false};
       SDL_Rect sdlRect;
       SDL_Rect srcRect;
     };
