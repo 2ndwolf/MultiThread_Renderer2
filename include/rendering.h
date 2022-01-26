@@ -123,9 +123,8 @@ namespace SDLA {
     class Window {
       public:
       SDLA::idInf newGroup(int layer);
-      SDLA::ID updImage(int layer, Rendering::SpriteInfo* info, SDLA::ID groupID, SDLA::ID sprID = SDLA::Identifier::noID());
-      void updGroup(int layer, Rendering::SpriteInfo* info, SDLA::ID groupID);
-      // std::shared_ptr<Rendering::SpriteGroup> Rendering::Window::grabGroup(SDLA::idInf groupID);
+      SDLA::ID updImage(SDLA::idInf idInf, Rendering::SpriteInfo* info, SDLA::ID sprID = SDLA::Identifier::noID());
+      void updGroup(SDLA::idInf idInf, Rendering::SpriteInfo* info);
 
       private:
       struct Layer {
@@ -137,8 +136,6 @@ namespace SDLA {
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groupBuffer;
         std::map<SDLA::ID, std::shared_ptr<SpriteGroup>> groupBufferOld;
         std::atomic<bool> gBufferBusy;
-        // std::map<int, std::vector<std::shared_ptr<Sprite>>>* spriteBuffer;
-        // std::map<int, std::vector<std::shared_ptr<Sprite>>>* spriteBufferOld;
       };
 
       Box size;

@@ -113,43 +113,43 @@ void Rendering::Window::display(){
 
 }
 
-SDLA::ID Rendering::Window::updImage(int layer, Rendering::SpriteInfo* info, SDLA::ID groupID, SDLA::ID sprID){
-  if(layer < 0) layer = 0;
+SDLA::ID Rendering::Window::updImage(SDLA::idInf idInf, Rendering::SpriteInfo* info, SDLA::ID sprID){
+  if(idInf.layer < 0) idInf.layer = 0;
 
-  layers[layer]->gBufferBusy = true;
+  layers[idInf.layer]->gBufferBusy = true;
 
   if(sprID == SDLA::Identifier::noID()) sprID = SDLA::Identifier::newID();
   std::shared_ptr<Sprite> spr = std::make_shared<Sprite>(info);
-  spr->ownerGroupID = groupID;
-  if(layers[layer]->groupBuffer.count(groupID) == 0){
+  spr->ownerGroupID = idInf.id;
+  if(layers[idInf.layer]->groupBuffer.count(idInf.id) == 0){
     std::shared_ptr<Rendering::SpriteGroup> sprG = std::make_shared<Rendering::SpriteGroup>();
-    layers[layer]->groupBuffer.insert({groupID, sprG});
+    layers[idInf.layer]->groupBuffer.insert({idInf.id, sprG});
   }
-  layers[layer]->groupBuffer[groupID]->sprites.insert({sprID, spr});
+  layers[idInf.layer]->groupBuffer[idInf.id]->sprites.insert({sprID, spr});
 
-  layers[layer]->gBufferBusy = false;
+  layers[idInf.layer]->gBufferBusy = false;
 
-  layers[layer]->groupsMirror[groupID]->sprites.insert({sprID, spr});
+  layers[idInf.layer]->groupsMirror[idInf.id]->sprites.insert({sprID, spr});
   return sprID;
 }
 
-void Rendering::Window::updGroup(int layer, Rendering::SpriteInfo* info, SDLA::ID groupID){
-  layers[layer]->groupsMirror[groupID]->info = info;
+void Rendering::Window::updGroup(SDLA::idInf idInf, Rendering::SpriteInfo* info){
+  layers[idInf.layer]->groupsMirror[idInf.id]->info = info;
 
-  layers[layer]->gBufferBusy = true;
+  layers[idInf.layer]->gBufferBusy = true;
 
-  if(layers[layer]->groupBuffer.count(groupID) == 0){
+  if(layers[idInf.layer]->groupBuffer.count(idInf.id) == 0){
     std::shared_ptr<Rendering::SpriteGroup> sprG = std::make_shared<Rendering::SpriteGroup>();
     sprG->info = info;
     sprG->updated = true;
-    layers[layer]->groupBuffer.insert({groupID, sprG});
+    layers[idInf.layer]->groupBuffer.insert({idInf.id, sprG});
     // return;
   } else {
-    layers[layer]->groupBuffer[groupID]->info = info;
-    layers[layer]->groupBuffer[groupID]->updated = true;
+    layers[idInf.layer]->groupBuffer[idInf.id]->info = info;
+    layers[idInf.layer]->groupBuffer[idInf.id]->updated = true;
   }
 
-  layers[layer]->gBufferBusy = false;
+  layers[idInf.layer]->gBufferBusy = false;
 }
 
 SDLA::idInf Rendering::Window::newGroup(int layer){
