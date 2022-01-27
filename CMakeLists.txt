@@ -41,7 +41,7 @@ find_library(SDL2_IMAGE
 #     NO_SYSTEM_ENVIRONMENT_PATH
 #     NO_CMAKE_SYSTEM_PATH
 # )
-
+ 
 add_library(${PROJ_NAME} ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE})
