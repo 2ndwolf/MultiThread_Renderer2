@@ -1,6 +1,6 @@
 #include <string>
 
-#include <SDL2/SDL.h> 
+#include <SDL.h> 
 
 #include "rendering.h"
 #include "identifier.h"

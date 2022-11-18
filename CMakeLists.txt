@@ -1,47 +1,44 @@
 cmake_minimum_required(VERSION 3.17)
-set(PROJ_NAME "MultiThread_Renderer2")
 
-project(${PROJ_NAME})
-
-set(CMAKE_CXX_STANDARD 17)
+#Compiler Stuff
+set(C_COMPILER_PATH  "D:/MinGW/GCC12.2/bin")
+set(CXX_COMPILER_PATH  "D:/MinGW/GCC12.2/bin")
 set(GENERATOR_NAME "MinGW Makefiles")
+set(CMAKE_CXX_STANDARD 17)
 
-include_directories(
+# SDL2 Stuff
+set(SDL2_VERSION "2.24.2")
+set(SDL2_IMAGE_VERSION "2.6.2")
+
+set(CMAKE_C_COMPILER "${C_COMPILER_PATH}/gcc.exe")
+set(CMAKE_CXX_COMPILER "${CXX_COMPILER_PATH}/g++.exe")
+
+project(MTR2)
+
+# Output
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+include_directories(MTR2
 		${PROJECT_SOURCE_DIR}/include
-		${PROJECT_SOURCE_DIR}/dependencies
+        ${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2-${SDL2_VERSION}/x86_64-w64-mingw32/include/SDL2
+		${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2_image-${SDL2_IMAGE_VERSION}/x86_64-w64-mingw32/include/SDL2
 )
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB NESTEDSOURCES ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
 file(GLOB NESTEDSOURCES2 ${PROJECT_SOURCE_DIR}/src/*/*/*.cpp)
 file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
- 
-find_library(SDL2_LIBRARY 
-    NAMES SDL2 
-    PATHS ${PROJECT_SOURCE_DIR}/dependencies/SDL2/bin
-    NO_CMAKE_PATH
-    NO_CMAKE_ENVIRONMENT_PATH
-    NO_SYSTEM_ENVIRONMENT_PATH
-    NO_CMAKE_SYSTEM_PATH
-)
 
-find_library(SDL2_IMAGE 
-    NAMES SDL2_image
-    PATHS ${PROJECT_SOURCE_DIR}/dependencies/SDL2/bin
-    NO_CMAKE_PATH
-    NO_CMAKE_ENVIRONMENT_PATH
-    NO_SYSTEM_ENVIRONMENT_PATH
-    NO_CMAKE_SYSTEM_PATH
-)
-# find_library(SDL2_MIXER 
-#     NAMES SDL2_mixer
-#     PATHS ${PROJECT_SOURCE_DIR}/dependencies/SDL2_mixer-dev/bin
-#     NO_CMAKE_PATH
-#     NO_CMAKE_ENVIRONMENT_PATH
-#     NO_SYSTEM_ENVIRONMENT_PATH
-#     NO_CMAKE_SYSTEM_PATH
-# )
- 
-add_library(${PROJ_NAME} ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
 
-target_link_libraries(${PROJ_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE})
+
+set(SDL2_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2-${SDL2_VERSION}/cmake/)
+set(SDL2_image_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_image-${SDL2_IMAGE_VERSION}/cmake/)
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
+
+
+add_library(MTR2 STATIC ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
+target_link_libraries(MTR2 SDL2::SDL2-static SDL2_image::SDL2_image-static)
