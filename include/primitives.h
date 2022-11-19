@@ -3,6 +3,13 @@
 
 namespace SDLA {
 
+  typedef int ID;
+
+  typedef struct idInf{
+    ID id;
+    int layer;
+  } idInf;
+
   typedef struct Vec2{
     int x = 0, y = 0;
 
