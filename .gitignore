@@ -1,0 +1,10 @@
+*
+!assets
+!assets/uPref.ini
+!include
+!include/**/**/**/**/**/*
+!src
+!src/**/**/**/**/**/*
+!CMakeLists.txt
+!.gitignore
+!readme.md
