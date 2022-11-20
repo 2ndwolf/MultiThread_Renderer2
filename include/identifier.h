@@ -7,7 +7,7 @@ namespace SDLA{
 
   class Identifier{
     private:
-      static SDLA::ID currtID;
+      inline static SDLA::ID currtID = -1;
     public:
       static SDLA::ID newID(){
         currtID++;
@@ -16,6 +16,9 @@ namespace SDLA{
       static SDLA::ID noID(){
         return -1;
       }
+      // static void initIDs(){
+      //   SDLA::ID currtID = -1;
+      // }
   };
 
 }
