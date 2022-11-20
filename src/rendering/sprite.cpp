@@ -62,7 +62,8 @@ std::shared_ptr<Rendering::Sprite> Rendering::Sprite::addImage(int layer, Render
 
 // No star bCuz shared pointer, lulz
 // Add an overload that will accept a groupInfo spriteInfo instaed of a groupID and will append
-std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImageGroup(int layer, std::vector<SpriteInfo*> group, int groupID){
+std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, std::vector<SpriteInfo*> group, int groupID){
+  setWorkingWindow(window);
   if(layer > win->getLayerCount()) layer =  win->getLayerCount();
   else if(layer < 0) layer = 0;
 

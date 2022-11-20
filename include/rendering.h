@@ -193,7 +193,7 @@ namespace SDLA {
       static void setWorkingWindow(std::shared_ptr<Window> window){win = window;};
       static std::shared_ptr<Rendering::Sprite> addImage(int layer, SpriteInfo* info, int groupID = -1); // Add to group 0
       // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
-      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(int layer, std::vector<SpriteInfo*> group, int groupID = -1);
+      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, std::vector<SpriteInfo*> group, int groupID = -1);
 
       void remove(){pendingErase = true;};
 
