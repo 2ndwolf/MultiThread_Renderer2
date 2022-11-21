@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
 
 #Compiler Stuff
-set(C_COMPILER_PATH  "D:/MinGW/GCC12.2/bin")
-set(CXX_COMPILER_PATH  "D:/MinGW/GCC12.2/bin")
+set(C_COMPILER_PATH  "D:/MinGW/GCC12.2_64/bin")
+set(CXX_COMPILER_PATH  "D:/MinGW/GCC12.2_64/bin")
 set(GENERATOR_NAME "MinGW Makefiles")
 set(CMAKE_CXX_STANDARD 17)
 
