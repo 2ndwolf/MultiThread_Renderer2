@@ -5,7 +5,6 @@
 #include "rendering.h"
 using namespace SDLA;
 
-std::shared_ptr<Rendering::Window> Rendering::Sprite::win;
 std::mutex Rendering::Sprite::mtx;
 
 Rendering::Sprite::Sprite(Rendering::SpriteInfo* info){
@@ -28,7 +27,7 @@ Rendering::Sprite::Sprite(Rendering::SpriteInfo* info){
     sdlRect.h = info->area.box.height;
     sdlRect.x = 0;
     sdlRect.y = 0;
-    // SDL_QueryTexture(texture, NULL, NULL, &info->area.box.width, &info->area.box.height); 
+    // SDL_QueryTexture(texture, NULL, NULL, &info.area.box.width, &info.area.box.height); 
   }// else {
   //   SDL_QueryTexture(texture, NULL, NULL, &sdlRect.w, &sdlRect.h); 
   //   srcRect.w = sdlRect.w;
@@ -38,92 +37,47 @@ Rendering::Sprite::Sprite(Rendering::SpriteInfo* info){
   // }
 }
 
-std::shared_ptr<Rendering::Sprite> Rendering::Sprite::addImage(int layer, Rendering::SpriteInfo* info, int groupID){
+std::shared_ptr<Rendering::Sprite> Rendering::Sprite::addImage(std::shared_ptr<SDLA::Rendering::Window> window, int layer, Rendering::SpriteInfo* info){
+  setWorkingWindow(window);
+
   if(layer > win->getLayerCount()) layer =  win->getLayerCount();
   else if(layer < 0) layer = 0;
 
-  std::vector<std::shared_ptr<SpriteGroup>>* groups = &win->getLayer(layer)->groups;
-  std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(info);
-  if(groupID < 0){
-    groupID = 0;
-    if(groups->size() == 0){
+  // std::vector<std::shared_ptr<SpriteGroup>>* groups = &win->getLayer(layer)->groups;
+  // std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(info);
+  // if(groupID < 0){
+  //   groupID = 0;
+  //   if(groups->size() == 0){
       
-      groups->push_back(std::make_shared<SpriteGroup>());
-    }
-  }
-
-  // std::thread* thread = Rendering::getThread(this->threadID);
+  //     groups->push_back(std::make_shared<SpriteGroup>());
+  //   }
+  // }
+  std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
+  sG->sprites.push_back(std::make_shared<Sprite>(info));
+  sG->info = info;
   mtx.lock();
-  (*groups)[groupID]->sprites.push_back(sprite);
-  // (*groups)[groupID]->spriteCount = (*groups)[groupID]->sprites.size();
+  win->getLayer(layer)->groupBuffer.push_back(sG);
   mtx.unlock();
-  return sprite;
+  return sG->sprites[0];
 }
 
 // No star bCuz shared pointer, lulz
 // Add an overload that will accept a groupInfo spriteInfo instaed of a groupID and will append
-std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, std::vector<SpriteInfo*> group, int groupID){
+std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group){
   setWorkingWindow(window);
   if(layer > win->getLayerCount()) layer =  win->getLayerCount();
   else if(layer < 0) layer = 0;
 
-
-  // Does layer need a groupCount based on the fact that I need
-  // to use groups indirectly and add to it in the render loop
-  // instead, using a double buffer to update it?
-  std::map<int, std::shared_ptr<SDLA::Rendering::SpriteGroup>>& groups = win->getLayer(layer)->groupBuffer;
-  std::map<int, std::shared_ptr<SDLA::Rendering::SpriteGroup>> dummyGroups;
-  
-  // int* groupCount = &win->getLayer(layer)->groupCount;
-  int* grC = &win->getLayer(layer)->groupCount;
-  std::shared_ptr<SpriteGroup> sG;
-
-  if(groupID == 0){
-    // Cannot add to groupID 0
-    std::shared_ptr<Rendering::SpriteGroup> emptySprG = std::make_shared<SpriteGroup>();
-    emptySprG->info->fileName = "Cannot add to groupID 0";
-    return emptySprG;
+  std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
+  sG->info = groupInfo;
+  for(int i = 0; i < group.size(); i++){
+    sG->sprites.push_back(std::make_shared<Sprite>(group[i]));
   }
 
-  if(groupID < 0){
-    groupID = *grC;
-  }
-
-  do {
-    // groupID = groups.size();
-    if(*grC < groupID){
-      // mtx.lock();
-      dummyGroups.insert({*grC, std::make_shared<SpriteGroup>()});
-      // mtx.unlock();
-    } else {
-      sG = std::make_shared<SpriteGroup>();
-      sG->info = group[0];
-      // groups.insert({groupID, sG});
-    }
-    *grC += 1;
-  } while(*grC <= (groupID < 0 ? 2 : groupID));
-  
-
-  for(int i = 1; i < group.size(); i++){
-    std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(group[i]);
-    sprite->ownerGroup = sG;
-    sG->sprites.push_back(sprite);
-  }
-
-  dummyGroups.insert({groupID,sG});
-
-  std::map<int, std::shared_ptr<SDLA::Rendering::SpriteGroup>>::iterator it;
-  win->getLayer(layer)->gBufferBusy = true;
-  for(it = dummyGroups.begin(); it != dummyGroups.end(); it++){
-    if(groups.count(it->first) == 0){
-      groups.insert({it->first, it->second});
-    } else {
-      groups[it->first]->sprites.insert(groups[it->first]->sprites.end(), it->second->sprites.begin(), it->second->sprites.end());
-    }
-  }
-  win->getLayer(layer)->gBufferBusy = false;
-
-  return groups[groupID];
+  mtx.lock();
+  win->getLayer(layer)->groupBuffer.push_back(sG);
+  mtx.unlock();
+  return sG;
 }
 
 void Rendering::Sprite::setAngle(int degrees){
@@ -132,9 +86,9 @@ void Rendering::Sprite::setAngle(int degrees){
     info->angle = degrees;
     mtx.unlock();
   } else {
-    mtx.lock();
-    ownerGroup->info->angle = degrees;
-    mtx.unlock();
+    // mtx.lock();
+    // ownerGroup->info.angle = degrees;
+    // mtx.unlock();
   }
 }
 
@@ -144,9 +98,9 @@ void Rendering::Sprite::addAngle(int degrees){
     info->angle += degrees;
     mtx.unlock();
   } else {
-    mtx.lock();
-    ownerGroup->info->angle += degrees;
-    mtx.unlock();
+    // mtx.lock();
+    // ownerGroup->info.angle += degrees;
+    // mtx.unlock();
   }
 }
 
@@ -193,11 +147,9 @@ void Rendering::Sprite::setGroupAsRotationCenter(std::shared_ptr<Rendering::Spri
   }
 
   Vec2 bob = (Vec2) {minOffset.x + groupBounds.box.width, minOffset.y + groupBounds.box.height};
-  // groupBounds.pos = (Vec2) {maxLengthOffset.x - minOffset.x, maxLengthOffset.y - minOffset.y};
 
   for(std::shared_ptr<Sprite> s : sG->sprites){
     s->setRotationCenter((Vec2){bob.x / 2  - s->getInfo()->pos.offset.x, bob.y / 2  - s->getInfo()->pos.offset.y});
-    // Vec2 relativeCenter = {center.x + sInfo.pos.offset.x, center.y+ sInfo.pos.offset.y};
   }
 }
 

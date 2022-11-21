@@ -50,42 +50,10 @@ void Rendering::Window::display(){
   for(int i = 0; i < layers.size(); i++){
 
     // firstSpriteGroup is actually not a group, so disable group properties
+    // is this still true?
     bool firstSpriteGroup = true;
 
-    std::map<int, std::shared_ptr<SpriteGroup>>::iterator it;
     updateGroupBuffer(i);
-    if(layers[i]->groupBufferOld.size() != 0){
-      for(it = layers[i]->groupBufferOld.begin(); it != layers[i]->groupBufferOld.end(); it++){
-        int groupID = it->first;
-        std::shared_ptr<SpriteGroup> funtimes = it->second;
-        // If the group is referencing an inexistant group
-        // that doesn't match with the end, add dummy SpriteGroups
-        while(groupID >= layers[i]->groups.size()){
-          layers[i]->groups.push_back(std::make_shared<SpriteGroup>());
-          layers[i]->groups[layers[i]->groups.size()-1]->sprites = std::vector<std::shared_ptr<SDLA::Rendering::Sprite>>();
-        }
-
-        // Now the group has to be referencing the end
-        if(groupID == layers[i]->groups.size() - 1){
-          layers[i]->groups.push_back(it->second);
-
-        } else {
-          // If it's not, it's either an empty group that hasn't been added yet...
-          if(layers[i]->groups[groupID]->sprites.size() == 0){
-            layers[i]->groups[groupID] = it->second;
-          } else {
-          // Or an addition to an existent group
-            for(std::shared_ptr<Sprite> s : it->second->sprites){
-              layers[i]->groups[groupID]->sprites.push_back(s);
-            }
-          }
-        }
-      }
-      // Erase old buffer 
-      layers[i]->groupCount = 0;
-      layers[i]->groupBufferOld.clear();
-    }
-
     
     if(layers[i]->groups.size() != 0){
       layers[i]->groups.erase(

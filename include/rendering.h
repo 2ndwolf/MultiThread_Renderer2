@@ -29,7 +29,6 @@ namespace SDLA {
     }; 
     static std::map<std::string, SDLSurface> surfaces;
     std::thread renderThread;
-    // static std::thread* getThread(int threadID);
 
     private:
     // static int threadCount;
@@ -94,15 +93,10 @@ namespace SDLA {
       SpriteInfo* info = new SpriteInfo();
       std::atomic<bool> pendingErase = false;
       std::vector<std::shared_ptr<Sprite>> sprites;
-
-      // TODO Add double buffer for sprites too?!
-      std::atomic<int> spriteCount = 0;
     } SpriteGroup;
 
     Rendering(){
       windows = Windows();
-      
-      // newWindow(1, (SDLA::Box) {500,500});
       renderThread = std::thread(mane, this);
     }
 
@@ -122,14 +116,11 @@ namespace SDLA {
       private:
       struct Layer {
         std::vector<std::shared_ptr<SpriteGroup>> groups = std::vector<std::shared_ptr<SpriteGroup>>();
+        std::vector<std::shared_ptr<SpriteGroup>> groupBuffer = std::vector<std::shared_ptr<SpriteGroup>>();
+
         Vec2 offset;
         std::atomic<bool> hidden = false;
         int groupCount = 0;
-        std::map<int, std::shared_ptr<SpriteGroup>> groupBuffer;
-        std::map<int, std::shared_ptr<SpriteGroup>> groupBufferOld;
-        std::atomic<bool> gBufferBusy;
-        // std::map<int, std::vector<std::shared_ptr<Sprite>>>* spriteBuffer;
-        // std::map<int, std::vector<std::shared_ptr<Sprite>>>* spriteBufferOld;
       };
 
       Box size;
@@ -151,8 +142,7 @@ namespace SDLA {
       // std::mutex mtx;
 
       void updateGroupBuffer(int layer){
-        while(layers[layer]->gBufferBusy){}
-        layers[layer]->groupBuffer.swap(layers[layer]->groupBufferOld);
+        layers[layer]->groups = layers[layer]->groupBuffer;
       }
 
       public:
@@ -191,9 +181,9 @@ namespace SDLA {
     class Sprite{
       public:
       static void setWorkingWindow(std::shared_ptr<Window> window){win = window;};
-      static std::shared_ptr<Rendering::Sprite> addImage(int layer, SpriteInfo* info, int groupID = -1); // Add to group 0
+      static std::shared_ptr<Rendering::Sprite> addImage(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* info);
       // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
-      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, std::vector<SpriteInfo*> group, int groupID = -1);
+      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group);
 
       void remove(){pendingErase = true;};
 
@@ -221,7 +211,6 @@ namespace SDLA {
       SDL_Rect* const getSRCRect(){return &srcRect;};
       SDL_Rect* const getSDLRect(){return &sdlRect;};
       SpriteInfo* const getInfo(){return info;};
-      // void render();
       std::atomic<bool> pendingErase = false;
       // ~Sprite();
       Sprite(SpriteInfo* info);
@@ -230,13 +219,12 @@ namespace SDLA {
       std::string fileName;
       SDL_Texture* texture;
       std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
-      // std::atomic<bool> texReady = false;
 
 
       private:
       SpriteInfo* info;
       static std::mutex mtx;
-      static std::shared_ptr<Window> win;
+      inline static std::shared_ptr<Window> win;
       std::shared_ptr<Window> myWin;
       std::atomic<bool> hidden = false;
       SDL_Rect sdlRect;
