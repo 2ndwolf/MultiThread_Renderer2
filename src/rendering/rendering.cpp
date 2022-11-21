@@ -16,18 +16,11 @@ std::shared_ptr<Rendering::Window> Rendering::newWindow(
       ){
   std::shared_ptr<Window> window = std::make_shared<Window>(layerCount, windowSize, /* this->threadID,  */name, position, mode);
 
-  // SDLA::Rendering::Sprite::setWorkingWindow(window);
-  // window->getLayer(0)->groups.push_back(std::make_shared<SDLA::Rendering::SpriteGroup>());
-  // SDLA::Rendering::SpriteInfo* bodyInfo = new SDLA::Rendering::SpriteInfo();
-  // bodyInfo->fileName = "assets/head440.png";
-
-  // window->getLayer(0)->groups[0]->sprites.push_back(std::make_shared<SDLA::Rendering::Sprite>(bodyInfo));
-
   windows.members.push_back(window);
   return window;
 }
 
-
+// TODO check if image exists first
 Rendering::SDLSurface* Rendering::loadSurface(std::string fileName, bool keepImgInMemory){
   if(!surfaces.count(fileName)){
     Rendering::SDLSurface newSur;
