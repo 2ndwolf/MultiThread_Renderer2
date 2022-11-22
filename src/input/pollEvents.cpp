@@ -35,33 +35,18 @@ namespace Input {
         KeyStatesMap::keycodeStates[event.key.keysym.scancode] = Input::KeyStates::UP;
         break;
 
-      // case SDL_MOUSEBUTTONDOWN:
-      //   switch(event.button.button){
-      //     case SDL_BUTTON_LEFT:
-      //       Mouse::clicks[SDL_BUTTON_LEFT] =  1;
-      //       break;
-      //     case SDL_BUTTON_RIGHT:
-      //       Mouse::clicks[SDL_BUTTON_RIGHT] =  1;
-      //       break;
-      //   }
+      case SDL_MOUSEBUTTONDOWN:
+        Mouse::clicks[event.button.button] = Input::KeyStates::DOWN;
+        break;
 
-      //   break;
+      case SDL_MOUSEBUTTONUP:
+        Mouse::clicks[event.button.button] = Input::KeyStates::UP;
+        break;
 
-      // case SDL_MOUSEBUTTONUP:
-      //   switch(event.button.button){
-      //     case SDL_BUTTON_LEFT:
-      //       Mouse::clicks[SDL_BUTTON_LEFT] = -1;
-      //     break;
-      //     case SDL_BUTTON_RIGHT:
-      //       Mouse::clicks[SDL_BUTTON_RIGHT] = -1;
-      //     break;
-      //   }
-      //   break;
-
-      // case SDL_MOUSEMOTION:
-      //   Mouse::x = event.motion.x;
-      //   Mouse::y = event.motion.y;
-      //   break;
+      case SDL_MOUSEMOTION:
+        Mouse::mousePos.x = event.motion.x;
+        Mouse::mousePos.y = event.motion.y;
+        break;
       }
     }
 
@@ -83,6 +68,20 @@ namespace Input {
       }
 
       it++;
+
+    }
+
+    std::map<int, KeyStates>::iterator mit = Mouse::clicks.begin();
+    while (mit != Mouse::clicks.end()){
+
+      if(mit -> second == Input::KeyStates::DOWN){
+        mit->second = Input::KeyStates::HELD;
+
+      } else if (mit -> second == Input::KeyStates::UP){
+        mit->second = Input::KeyStates::INACTIVE;
+      }
+
+      mit++;
 
     }
   }

@@ -9,6 +9,8 @@
 
 #include "SDL_scancode.h"
 
+#include "primitives.h"
+
 
 namespace Input{
   enum KeyStates {
@@ -45,6 +47,20 @@ namespace Input{
     inline static std::map<std::string, std::vector<SDL_Scancode>> keys;
   };
 
+  enum MouseMode{
+    DEFAULT
+  };
+
+  class Mouse{
+    public:
+    Mouse(){};
+    inline static SDLA::ScreenPos mousePos;
+    inline static std::map<int, KeyStates> clicks;
+    inline static MouseMode mouseMode = MouseMode::DEFAULT;
+  };
+
+  // inline static Mouse::mouseMode = DEFAULT;
+  inline static Mouse mouse = Mouse();
 }
 
 #endif
