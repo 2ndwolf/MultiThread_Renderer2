@@ -5,30 +5,44 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "SDL_scancode.h"
 
 
-// #include "dependencies/entt/entity/registry.hpp"
-
 namespace Input{
+  enum KeyStates {
+    UP,
+    INACTIVE,
+    DOWN,
+    HELD
+  };
 
-  void initKeyBinds();
+  inline std::vector<std::string> scancodeStrVec((int)SDL_NUM_SCANCODES);
+
+  void initKeyBinds(std::map<std::string, std::vector<SDL_Scancode>> &iniDefinedKeys);
+  void loadScancodes();
+  std::vector<SDL_Scancode> findScancode(std::vector<std::string> keycodeAsStr);
 
   // void updateMouse(entt::registry &registry);
 
   int pollEvents();
-  void updateInputStates(std::map<int, int> &inputStates);
+  void updateInputStates(std::map<SDL_Scancode, KeyStates> &inputStates);
   void MusicFun();
 
-  class KeyStates{
+  bool keyPressed(std::string key);
+  bool keyHeld(std::string key);
+  bool keyUp(std::string key);
+  bool keyDown(std::string key);
+
+  class KeyStatesMap{
     public:
-    static std::map<int, int> keycodeStates;
+    inline static std::map<SDL_Scancode, KeyStates> keycodeStates;
   };
 
   class Keybinds{
     public:
-    static std::map<SDL_Scancode, std::string> keys;
+    inline static std::map<std::string, std::vector<SDL_Scancode>> keys;
   };
 
 }

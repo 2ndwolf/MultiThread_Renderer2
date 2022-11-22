@@ -4,8 +4,6 @@
 
 #include "input.h"
 
-std::map<int, int> Input::KeyStates::keycodeStates;
-
 namespace Input {
 
   int pollEvents () {
@@ -13,7 +11,7 @@ namespace Input {
 
     // Increment pressed state, or delete if released during previous frame
     // updateInputStates(Mouse::clicks);
-    updateInputStates(KeyStates::keycodeStates);
+    updateInputStates(KeyStatesMap::keycodeStates);
 
     while (SDL_PollEvent(&event)) { 
       switch (event.type) { 
@@ -29,12 +27,12 @@ namespace Input {
       case SDL_QUIT: 
         return 1;
 
-      case SDL_KEYDOWN: 
-        KeyStates::keycodeStates.insert({event.key.keysym.scancode, 1}); 
+      case SDL_KEYDOWN:
+        KeyStatesMap::keycodeStates.insert({event.key.keysym.scancode, Input::KeyStates::DOWN}); 
         break;
 
       case SDL_KEYUP:
-        KeyStates::keycodeStates[event.key.keysym.scancode] = -1;
+        KeyStatesMap::keycodeStates[event.key.keysym.scancode] = Input::KeyStates::UP;
         break;
 
       // case SDL_MOUSEBUTTONDOWN:
@@ -72,14 +70,14 @@ namespace Input {
     return 0;
   }
 
-  void updateInputStates(std::map<int, int> &inputStates){
-    std::map<int, int>::iterator it = inputStates.begin();
+  void updateInputStates(std::map<SDL_Scancode, KeyStates> &inputStates){
+    std::map<SDL_Scancode, KeyStates>::iterator it = inputStates.begin();
     while (it != inputStates.end()){
 
-      if(it -> second == 1){
-        it->second = 2;
+      if(it -> second == Input::KeyStates::DOWN){
+        it->second = Input::KeyStates::HELD;
 
-      } else if (it -> second == -1){
+      } else if (it -> second == Input::KeyStates::UP){
         it = inputStates.erase(it);
         continue;
       }
@@ -87,5 +85,34 @@ namespace Input {
       it++;
 
     }
+  }
+
+  //bool keypressed, keyheld, keyup, keydown
+  bool keyPressed(std::string key){
+    for(int i = 0; i < Input::Keybinds::keys[key].size(); i++){
+      if(Input::KeyStatesMap::keycodeStates[Input::Keybinds::keys[key][i]] > Input::KeyStates::INACTIVE) return true;
+    }
+    return false;
+  }
+
+  bool keyHeld(std::string key){
+    for(int i = 0; i < Input::Keybinds::keys[key].size(); i++){
+      if(Input::KeyStatesMap::keycodeStates[Input::Keybinds::keys[key][i]] == Input::KeyStates::HELD) return true;
+    }
+    return false;
+  }
+
+  bool keyUp(std::string key){
+    for(int i = 0; i < Input::Keybinds::keys[key].size(); i++){
+      if(Input::KeyStatesMap::keycodeStates[Input::Keybinds::keys[key][i]] == Input::KeyStates::UP) return true;
+    }
+    return false;
+  }
+
+  bool keyDown(std::string key){
+    for(int i = 0; i < Input::Keybinds::keys[key].size(); i++){
+      if(Input::KeyStatesMap::keycodeStates[Input::Keybinds::keys[key][i]] == Input::KeyStates::DOWN) return true;
+    }
+    return false;
   }
 }
