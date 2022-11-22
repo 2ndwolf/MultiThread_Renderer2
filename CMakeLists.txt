@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(SDL2_VERSION "2.24.2")
 set(SDL2_IMAGE_VERSION "2.6.2")
 set(SDL2_MIXER_VERSION "2.6.2")
+set(SDL2_TTF_VERSION "2.20.1")
 
 set(CMAKE_C_COMPILER "${C_COMPILER_PATH}/gcc.exe")
 set(CMAKE_CXX_COMPILER "${CXX_COMPILER_PATH}/g++.exe")
@@ -26,6 +27,7 @@ include_directories(MTR
     ${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2-${SDL2_VERSION}/x86_64-w64-mingw32/include/SDL2
 		${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2_image-${SDL2_IMAGE_VERSION}/x86_64-w64-mingw32/include/SDL2
 		${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2_mixer-${SDL2_MIXER_VERSION}/x86_64-w64-mingw32/include/SDL2
+		${PROJECT_SOURCE_DIR}/dependencies/MultiThread_Renderer2/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/x86_64-w64-mingw32/include/SDL2
 )
 
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -38,11 +40,13 @@ file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
 set(SDL2_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2-${SDL2_VERSION}/cmake/)
 set(SDL2_image_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_image-${SDL2_IMAGE_VERSION}/cmake/)
 set(SDL2_mixer_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_mixer-${SDL2_MIXER_VERSION}/cmake/)
+set(SDL2_ttf_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/cmake/)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
+find_package(SDL2_ttf REQUIRED)
 
 
 add_library(MTR STATIC ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
-target_link_libraries(MTR SDL2::SDL2-static SDL2_image::SDL2_image-static SDL2_mixer::SDL2_mixer-static)
+target_link_libraries(MTR SDL2::SDL2-static SDL2_image::SDL2_image-static SDL2_mixer::SDL2_mixer-static SDL2_ttf::SDL2_ttf)
