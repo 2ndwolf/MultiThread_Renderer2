@@ -74,16 +74,16 @@ void Rendering::Window::display(){
 
             sG->sprites.erase(
               std::remove_if(std::begin(sG->sprites), std::end(sG->sprites),
-                [&] (std::shared_ptr<Sprite> s) -> bool {
+                [&] (std::shared_ptr<Renderable> s) -> bool {
                 if (s->pendingErase) {
                   return true;
                 }
                 if(s->texQueued){
-                  s->texture = SDL_CreateTextureFromSurface(context, Rendering::surfaces[s->fileName].sur);
-                  Bounds* area = &s->getInfo()->area;
-                  if(area->box.width == 0 || area->box.height == 0){
-                    SDL_QueryTexture(s->texture, NULL, NULL, &area->box.width, &area->box.height);
-                    s->setCrop((*area), true);
+                  s->setTexture(SDL_CreateTextureFromSurface(context, Rendering::surfaces[s->getInfo()->fileName].sur));
+                  Bounds area = s->getInfo()->area;
+                  if(area.box.width == 0 || area.box.height == 0){
+                    SDL_QueryTexture(s->getTexture(), NULL, NULL, &area.box.width, &area.box.height);
+                    s->setCrop(area, true);
                   }
                   s->texQueued = false;
                 }

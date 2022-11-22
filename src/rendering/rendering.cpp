@@ -2,10 +2,10 @@
 #include <string>
 
 #include "rendering.h"
+#include "identifier.h"
+#include <SDL_ttf.h>
+
 using namespace SDLA;
-
-std::map<std::string, Rendering::SDLSurface> Rendering::surfaces;
-
 
 std::shared_ptr<Rendering::Window> Rendering::newWindow(
       int layerCount,
@@ -25,6 +25,7 @@ Rendering::SDLSurface* Rendering::loadSurface(std::string fileName, bool keepImg
   if(!surfaces.count(fileName)){
     Rendering::SDLSurface newSur;
     newSur.sur = IMG_Load(fileName.c_str());
+    newSur.fileName = fileName;
     if(keepImgInMemory) newSur.useCount = -1;
     else newSur.useCount = 1;
     surfaces.insert({fileName, newSur});
@@ -37,5 +38,27 @@ Rendering::SDLSurface* Rendering::loadSurface(std::string fileName, bool keepImg
   }
 
   return &surfaces[fileName];
+}
+
+Rendering::SDLFont* Rendering::loadFont(std::string fileName, int size){
+  std::string fontName = fileName + std::to_string(size);
+  if(!fonts.count(fontName)){
+    Rendering::SDLFont newFont;
+    newFont.font = TTF_OpenFont(fileName.c_str(), size);
+    newFont.fileName = fontName;
+    fonts.insert({fontName, newFont});
+  }
+
+  return &fonts[fontName];
+}
+
+SDLA::Rendering::SDLSurface* Rendering::loadTextSurface(std::string textureText, TTF_Font* font, SDL_Color textColor){
+
+  SDLSurface newSur;
+  newSur.sur = TTF_RenderText_Solid(font, textureText.c_str(), textColor);
+  newSur.fileName = "TEXT" + std::to_string(SDLA::Identifier::newtxtID());
+  surfaces.insert({newSur.fileName, newSur});
+
+  return &surfaces[newSur.fileName];
 }
 

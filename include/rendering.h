@@ -14,6 +14,7 @@
 
 #include <SDL.h> 
 #include <SDL_image.h> 
+#include <SDL_ttf.h>
 
 #include "primitives.h"
 
@@ -24,11 +25,21 @@ namespace SDLA {
   class Rendering {
     protected:
     struct SDLSurface{
+      std::string fileName;
+
       SDL_Surface* sur;
       int useCount;
-    }; 
-    static std::map<std::string, SDLSurface> surfaces;
+    };
+    inline static std::map<std::string, SDLSurface> surfaces;
+    struct SDLFont{
+      std::string fileName;
+      TTF_Font* font;
+      int size;
+    };
+    inline static std::map<std::string, SDLFont> fonts;
     std::thread renderThread;
+
+
 
     private:
     // static int threadCount;
@@ -54,10 +65,11 @@ namespace SDLA {
     }
     
     public:
-    static std::mutex mutex;
+    inline static std::mutex mutex;
 
     class Sprite;
     class Window;
+    class Renderable;
     struct Windows{
       std::vector<std::shared_ptr<Window>> members;
       // int threadID;
@@ -92,7 +104,7 @@ namespace SDLA {
     typedef struct {
       SpriteInfo* info = new SpriteInfo();
       std::atomic<bool> pendingErase = false;
-      std::vector<std::shared_ptr<Sprite>> sprites;
+      std::vector<std::shared_ptr<Renderable>> sprites;
     } SpriteGroup;
 
     Rendering(){
@@ -111,6 +123,9 @@ namespace SDLA {
       );
 
     static SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
+    static SDLFont* loadFont(std::string fileName, int size);
+    static SDLSurface* loadTextSurface(std::string textureText, TTF_Font* font, SDL_Color textColor);
+
 
     class Window {
       private:
@@ -176,27 +191,78 @@ namespace SDLA {
 
     };
 
+    // enum RenderTypes{
+    //   TEXT,
+    //   IMAGE
+    // };
 
-
-    class Sprite{
+    class Renderable {
       public:
+      std::atomic<bool> hidden = false;
+      std::atomic<bool> pendingErase = false;
+
       static void setWorkingWindow(std::shared_ptr<Window> window){win = window;};
-      static std::shared_ptr<Rendering::Sprite> addImage(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* info);
-      // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
-      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group);
 
       void remove(){pendingErase = true;};
-
       void hide(){hidden = true;};
       void show(){hidden = false;};
 
       void setAngle(int degrees);
       void addAngle(int degrees);
+
       void setRotationCenter(Vec2 center);
       static void setGroupAsRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG);
 
+      SpriteInfo* const getInfo(){return info;};
+      SDL_Texture* const getTexture(){return texture;};
+      void const setTexture(SDL_Texture* tex){texture = tex;};
       void setCrop(Bounds crop, bool rendererCall = false);
 
+      inline static std::mutex mtx;
+
+      SpriteInfo* info;
+      inline static std::shared_ptr<Window> win;
+      std::shared_ptr<Window> myWin;
+
+      std::atomic<bool> texQueued = true;
+      // RenderTypes type;
+
+      SDL_Rect* const getSRCRect(){return &srcRect;};
+      SDL_Rect* const getSDLRect(){return &sdlRect;};
+
+      SDL_Rect sdlRect;
+      SDL_Rect srcRect;
+      private:
+      SDL_Texture* texture;
+    };
+
+    class Text : public Renderable{
+      public:
+      Text(SpriteInfo* info, std::string textureText, std::string fontName, int size, SDL_Color textColor);
+      static std::shared_ptr<Rendering::SpriteGroup> loadText(std::shared_ptr<Window> window, int layer, SpriteInfo* info, std::string textureText, std::string fontName, int size, SDL_Color textColor);
+      void setColor( Uint8 red, Uint8 green, Uint8 blue );
+      //Set blending??
+      void setBlendMode( SDL_BlendMode blending );
+      //Set alpha modulation??
+      void setAlpha( Uint8 alpha );
+
+      SDL_Color color;
+
+      // TTF_Font* gFont;
+
+      // SDL_Surface* sur;
+
+      // RenderTypes type = TEXT;
+
+    };
+
+    class Sprite : public Renderable{
+      public:
+      static std::shared_ptr<Rendering::SpriteGroup> addImage(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* info);
+      // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
+      static std::shared_ptr<Rendering::SpriteGroup> addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group);
+
+      // JEN AI TU BESOIN
       void setPosition(WorldPos position);
       void moveFromPosition(Vec2 move);
       WorldPos getPosition(){return info->pos.worldPos;};
@@ -207,28 +273,20 @@ namespace SDLA {
 
       void changeSurface(std::string fileName);
 
-      SDL_Texture* const getTexture(){return texture;};
-      SDL_Rect* const getSRCRect(){return &srcRect;};
-      SDL_Rect* const getSDLRect(){return &sdlRect;};
-      SpriteInfo* const getInfo(){return info;};
-      std::atomic<bool> pendingErase = false;
+
       // ~Sprite();
       Sprite(SpriteInfo* info);
 
-      std::atomic<bool> texQueued = true;
       std::string fileName;
-      SDL_Texture* texture;
-      std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
+
+      // RenderTypes type = IMAGE;
+      
+      // std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
 
 
       private:
-      SpriteInfo* info;
-      static std::mutex mtx;
-      inline static std::shared_ptr<Window> win;
-      std::shared_ptr<Window> myWin;
-      std::atomic<bool> hidden = false;
-      SDL_Rect sdlRect;
-      SDL_Rect srcRect;
+
+
     };
 
     /**
