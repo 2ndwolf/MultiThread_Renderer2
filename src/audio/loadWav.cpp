@@ -9,29 +9,20 @@
 
 #include "audio.h"
 
-std::map<std::string, Audio::Sound> LoadedSounds;
-char* previousSound;
-
-
-using namespace std;
 
 namespace Audio{
-  // static lastSound 
 
-  void play(char * soundName){
+  void play(std::string soundName){
     if(LoadedSounds.find((std::string)soundName) == LoadedSounds.end()){
       std::cout << "Loading new sound..." << std::endl;
       Sound sample = Sound();
-      if (SDL_LoadWAV(soundName, &Device::AudioSpecWant, &sample.wav_buffer, &sample.wav_length) == NULL) {
-        soundName = previousSound;
+      if (SDL_LoadWAV(soundName.c_str(), &Device::AudioSpecWant, &sample.wav_buffer, &sample.wav_length) == NULL) {
         fprintf(stderr, "Could not open %s : %s\n", soundName, SDL_GetError());
         return;
       } else {
         LoadedSounds[soundName] = sample;
       }
     }
-
-    previousSound = soundName;
 
     if(Device::currentId == -1){
       Device::deviceId = SDL_OpenAudioDevice(NULL, 0, &Device::AudioSpecWant, NULL, 0);
@@ -48,7 +39,6 @@ namespace Audio{
       if(Device::currentId == -1){
         SDL_PauseAudioDevice(Device::deviceId, 0);
       }
-      // cout << Device::deviceId << endl;
     }
     // SDL_Delay(500);
     // SDL_CloseAudioDevice(deviceId);
@@ -60,7 +50,7 @@ namespace Audio{
     Device::currentId = -1;
     for(int i = 0; i < Device::deviceIds.size(); i++){
       SDL_CloseAudioDevice(Device::deviceIds[i]);
-      std::cout << "Closing devices!!!!!" + i << endl;
+      std::cout << "Closing devices!!!!!" + i << std::endl;
     }
     Device::deviceIds.resize(0);
   }
