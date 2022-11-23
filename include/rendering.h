@@ -19,6 +19,7 @@
 #include "primitives.h"
 
 
+
 namespace SDLA {
 
 
@@ -149,10 +150,11 @@ namespace SDLA {
       std::atomic<bool> fullScreen;
       std::atomic<bool> minimized;
       std::atomic<bool> shown;
+      ID winID;
       SDL_Window* window;
       SDL_Renderer* context;
       SDL_Renderer* context2;
-      int windowID;
+      inline static ID focusedWin;
 
       // std::mutex mtx;
 
@@ -180,6 +182,9 @@ namespace SDLA {
 
       int getLayerCount(){return layerCount-1;};
       std::shared_ptr<Layer> getLayer(int layer){return layers[layer];};
+
+      static ID getCurrentWindowID(){return focusedWin;};
+      static ID getWindowID(std::shared_ptr<Window> window){return window->winID;};
 
       SDL_Renderer* const getContext(){return context;};
       SDL_Texture* createTexture(SDL_Surface* surface);

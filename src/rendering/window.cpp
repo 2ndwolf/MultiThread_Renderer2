@@ -4,6 +4,7 @@
 
 
 #include "rendering.h"
+#include "identifier.h"
 using namespace SDLA;
 
 Rendering::Window::Window(
@@ -17,6 +18,8 @@ Rendering::Window::Window(
 
   size = windowSize;
   this->layerCount = layerCount;
+  this->winID = Identifier::newWinID();
+  this->focusedWin = winID;
 
   window = SDL_CreateWindow(name.c_str(),
                             position.x, 
@@ -51,7 +54,7 @@ void Rendering::Window::display(){
 
     // firstSpriteGroup is actually not a group, so disable group properties
     // is this still true?
-    bool firstSpriteGroup = true;
+    bool firstSpriteGroup = false;
 
     updateGroupBuffer(i);
     
