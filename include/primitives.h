@@ -17,6 +17,10 @@ namespace SDLA {
       return x == comp.x && y == comp.y;
     }
 
+    Vec2 operator-(const Vec2& comp){
+      return {x-comp.x, y-comp.y};
+    }
+
   } Vec2, WorldPos, ScreenPos;
 
   typedef struct Box{
@@ -28,9 +32,14 @@ namespace SDLA {
     
   } Box;
 
-  typedef struct {
+  typedef struct Bounds{
     Vec2 pos;
     Box box;
+
+    bool operator==(const Bounds& comp){
+      return box == comp.box && pos == comp.pos;
+    } 
+
   } Bounds;
 
 }
