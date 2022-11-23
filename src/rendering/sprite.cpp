@@ -73,14 +73,14 @@ void Rendering::Sprite::moveFromPosition(Vec2 move){
   mtx.unlock();
 }
 
-void Rendering::Sprite::changeSurface(std::string fileN){
-  if(surfaces[fileName].useCount != -1){
-    surfaces[fileName].useCount -= 1;
-    if(surfaces[fileName].useCount == 0) surfaces.erase(fileName);
+void Rendering::Sprite::changeSurface(std::shared_ptr<Rendering::Renderable> spr, std::string fileN){
+  if(surfaces[spr->info->fileName].useCount != -1){
+    surfaces[spr->info->fileName].useCount -= 1;
+    if(surfaces[spr->info->fileName].useCount == 0) surfaces.erase(spr->info->fileName);
   }
   
-  fileName = fileN;
-  Rendering::loadSurface(fileName)->sur;
+  Rendering::loadSurface(fileN);
+  spr->info->fileName = fileN;
 
-  texQueued = true;
+  spr->texQueued = true;
 }
