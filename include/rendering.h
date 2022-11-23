@@ -276,7 +276,7 @@ namespace SDLA {
 
       void setFlip();
 
-      void changeSurface(std::string fileName);
+      static void changeSurface(std::shared_ptr<Rendering::Renderable> spr, std::string fileName);
 
 
       // ~Sprite();
