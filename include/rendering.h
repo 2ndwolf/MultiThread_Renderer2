@@ -17,6 +17,7 @@
 #include <SDL_ttf.h>
 
 #include "primitives.h"
+#include "identifier.h"
 
 
 
@@ -24,38 +25,37 @@ namespace SDLA {
 
 
   class Rendering {
-    protected:
+    public:
     struct SDLSurface;
     struct SDLFont;
+    class Window;
+
+    protected:
+    inline static std::string currentWindow;
     inline static std::map<std::string, SDLSurface> surfaces;
     inline static std::map<std::string, SDLFont> fonts;
 
     std::thread renderThread;
 
-    class Window;
-    inline static std::shared_ptr<Window> currentWindow; // string?
-    inline static std::string workingWindow;
+    // inline static std::string workingWindow;
     inline static std::map<std::string, std::shared_ptr<Window>> windows;
-    static void setWorkingWindow(std::string window){workingWindow = window;};
+    // static void setWorkingWindow(std::string window){workingWindow = window;};
 
 
     private:
 
     void mane(){
+      // std::map<std::string, std::shared_ptr<SDLA::Rendering::Window>>::iterator it;
       while (true) {
         if(windows.size() != 0){
-          windows.erase(
-            std::remove_if(std::begin(windows), std::end(windows),
-              [&] (std::shared_ptr<SDLA::Rendering::Window> win) -> bool {
-                if (win->pendingErase) {
-                  return true;
-                }
-                win->display();
-                return false;
-              }
-            ),
-            std::end(windows)
-          );
+          for(auto it = windows.begin(); it != windows.end(); it++){
+            if (it->second->pendingErase) {
+              it = windows.erase(it);
+            } else {
+              it->second->display();
+              it++;
+            }
+          }
         }
       }
     }
@@ -94,7 +94,7 @@ namespace SDLA {
       Bounds area;
 
 
-      Vec2 offset;
+      Vec2 offset = {0,0};
       Vec2 worldPos;
       SDL_RendererFlip flip = SDL_FLIP_NONE;
 
@@ -127,7 +127,7 @@ namespace SDLA {
       renderThread.detach();
       windows = {};};
 
-    std::shared_ptr<Rendering::Window> newWindow(
+    std::string newWindow(
         int layerCount,
         Box windowSize,
         std::string name = "Abstraction",
@@ -136,7 +136,8 @@ namespace SDLA {
     );
     static void setGroupAsRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG);
     static void setGroupRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG, Vec2 center);
-    static std::shared_ptr<Window> getWorkingWindow(){return windows[workingWindow];}
+    static const std::string getCurrentWindow(){return currentWindow;};
+    // static std::string getWorkingWindow(){return workingWindow;}
 
     class Window {
       // protected:
@@ -147,6 +148,7 @@ namespace SDLA {
       struct Layer{
         std::vector<std::shared_ptr<SpriteGroup>> groups = std::vector<std::shared_ptr<SpriteGroup>>();
 
+        ID id;
         Vec2 offset = {0,0};
         std::atomic<bool> hidden = false;
       };
@@ -208,9 +210,13 @@ namespace SDLA {
       void offsetLayer(int layer, Vec2 offset){writeBuffer[layer]->offset = offset;};
 
       const std::vector<std::shared_ptr<Layer>> getBuffer(){return writeBuffer;};
+      int clampLayerIndex(int layer){
+        return std::max(std::min(layer,getLayerCount()-1),0);
+      }
 
       int getLayerCount(){return writeBuffer.size();};
-      std::shared_ptr<Layer> getLayer(int layer){return writeBuffer[layer];};
+      std::shared_ptr<Layer> getLayer(int layer){return writeBuffer[clampLayerIndex(layer)];};
+      std::vector<std::shared_ptr<SDLA::Rendering::Window::Layer>> getWriteBuffer(){return writeBuffer;};
 
       // inline static std::shared_ptr<Window> currentWindow;
       // static ID getCurrentWindowID(){return focusedWin;};
@@ -252,17 +258,17 @@ namespace SDLA {
       // std::shared_ptr<SpriteInfo> const getInfo(){return info;};
       SDL_Texture* const getTexture(){return texture;};
       void setCrop(Bounds crop, bool rendererCall = false);
-      bool getIgnoreCamera(){return ignoreCamera;}
+      bool getIgnoreCamera(){return ownerGroup->ignoreCamera;}
 
       Bounds getBounds(){return 
       {ownerGroup->ignoreCamera ? 
-        windows[windowOwnerName]->getBuffer()[layer]->offset + 
+        windows[myWindow]->getBuffer()[layer]->offset + 
         info->offset + 
         ownerGroup->info->offset
          : 
-        windows[windowOwnerName]->getBuffer()[layer]->offset + 
+        windows[myWindow]->getBuffer()[layer]->offset + 
         info->offset + 
-        (ownerGroup->info->worldPos - windows[windowOwnerName]->camPos),
+        (ownerGroup->info->worldPos - windows[myWindow]->camPos),
         {getSDLRect()->w,getSDLRect()->h}};};
 
 
@@ -270,7 +276,7 @@ namespace SDLA {
       void const setTexture(SDL_Texture* tex){texture = tex;};
 
       std::shared_ptr<SpriteInfo> info;
-      std::string windowOwnerName;
+      std::string myWindow;
       std::shared_ptr<Rendering::SpriteGroup> ownerGroup;
 
       std::atomic<bool> texQueued = true;
@@ -281,17 +287,20 @@ namespace SDLA {
       std::string const getFileName(){return info->fileName;};
 
       protected:
-      Renderable(SpriteInfo* info, int layer){
+      Renderable(SpriteInfo* info, int layer, std::string window){
         // this->ignoreCamera = ignoreCamera;
-        this->info = std::make_shared<SpriteInfo>(info);
-        this->layer = layer;
+        // std::shared_ptr<SpriteInfo> sprI = std::make
+        this->info = std::shared_ptr<SpriteInfo>(info);
+        this->layer = windows[window]->clampLayerIndex(layer);
+        this->myWindow = window;
+
         // this->fileName = info->fileName;
       };
 
       SDL_Rect sdlRect;
       SDL_Rect srcRect;
       // std::string fileName;
-      std::atomic<bool> ignoreCamera = true;
+      // std::atomic<bool> ignoreCamera = true;
       int layer;
 
       private:
@@ -301,6 +310,8 @@ namespace SDLA {
 
     class Text : public Renderable{
       public:
+      Text(TextInfo* txtInfo, int layer, bool ignoreCamera, std::string window);
+
       static std::shared_ptr<Text> loadText(std::string window, int layer, TextInfo* txtInfo, bool ignoreCamera);
       static SDLFont* loadFont(std::string fileName, int size);
       static SDLSurface* loadSurface(std::string textureText, TextInfo* txtInfo);
@@ -327,7 +338,6 @@ namespace SDLA {
       // RenderTypes type = TEXT;
 
       private:
-      Text(TextInfo* txtInfo, int layer, bool ignoreCamera);
       ID txtID;
 
       std::shared_ptr<TextInfo> textInfo;
@@ -336,9 +346,11 @@ namespace SDLA {
 
     class Sprite : public Renderable{
       public:
+      Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window);
+
       static std::shared_ptr<Sprite> addImage(std::string window, int layer, SpriteInfo* info, bool ignoreCamera);
       // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
-      static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group);
+      static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group, bool ignoreCamera);
       static SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
 
       // JEN AI TU BESOIN
@@ -360,9 +372,7 @@ namespace SDLA {
       // std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
 
 
-      private:
-      Sprite(SpriteInfo* info, int layer, bool ignoreCamera);
-
+      // private:
 
     };
 

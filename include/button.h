@@ -1,8 +1,9 @@
-#ifndef _SDLA_button_h
-#define _SDLA_button_h
+#ifndef _button_h
+#define _button_h
 
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "primitives.h"
 #include "rendering.h"
@@ -17,7 +18,7 @@ namespace SDLA{
     std::function<void(int)> action;
 
     int parameter;
-    inline static std::map<ID, std::vector<std::shared_ptr<Button>>> buttons;
+    inline static std::map<std::string, std::vector<std::shared_ptr<Button>>> buttons;
   };
 
 

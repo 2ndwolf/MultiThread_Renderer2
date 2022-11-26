@@ -10,16 +10,13 @@
 #include "identifier.h"
 
 
-SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool ignoreCamera)
-: Renderable(txtInfo->info, layer){
+SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool ignoreCamera, std::string window)
+: Renderable(txtInfo->info, layer, window){
   txtID = SDLA::Identifier::newtxtID();
 
   SDLA::Rendering::SDLSurface* txtSur = SDLA::Rendering::Text::loadSurface(txtInfo->textureText, txtInfo);
-  // this->info = std::make_shared<SDLA::Rendering::SpriteInfo>(txtInfo->info);
-  // this->info->fileName = txtSur->fileName;
-  this->textInfo = std::make_shared<TextInfo>(txtInfo);
+  this->textInfo = std::shared_ptr<TextInfo>(txtInfo);
   this->info->fileName = txtSur->fileName;
-  windowOwnerName = workingWindow;
 
   srcRect.x = info->area.pos.x;
   srcRect.y = info->area.pos.y;
@@ -34,25 +31,19 @@ SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool 
 
   sdlRect.x = 0;
   sdlRect.y = 0;
-
-  // color = txtInfo->textColor;
 }
 
 std::shared_ptr<SDLA::Rendering::Text> SDLA::Rendering::Text::loadText(std::string window, int layer, SDLA::Rendering::TextInfo* txtInfo, bool ignoreCamera){
-  workingWindow = window;
-
-  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
-  else if(layer < 0) layer = 0;
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera);
+  std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera, window);
   txt->ownerGroup = sG;
   sG->sprites.push_back(txt);
   sG->ignoreCamera = ignoreCamera;
-  sG->info = std::make_shared<SpriteInfo>(txtInfo->info);
-  // mtx.lock();
-  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
-  // mtx.unlock();
+  sG->info = std::make_shared<SpriteInfo>();
+  // mutex.lock();
+  windows[window]->getLayer(layer)->groups.push_back(sG);
+  // mutex.unlock();
   return txt;
   //Get rid of preexisting texture
   // free();

@@ -6,13 +6,9 @@
 using namespace SDLA;
 
 
-Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera)
-: Renderable(info, layer){
+Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window)
+: Renderable(info, layer, window){
   SDLSurface* mySur = loadSurface(info->fileName);
-
-  // this->fileName = info->fileName;
-  // this->info = info;
-  windowOwnerName = workingWindow;
   
   srcRect.x = info->area.pos.x;
   srcRect.y = info->area.pos.y;
@@ -28,60 +24,46 @@ Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCam
 }
 
 std::shared_ptr<SDLA::Rendering::Sprite> Rendering::Sprite::addImage(std::string window, int layer, Rendering::SpriteInfo* info, bool ignoreCamera){
-  workingWindow = window;
+  // workingWindow = window;
 
-  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
-  else if(layer < 0) layer = 0;
 
-  std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera);
+
+  std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera, window);
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
+  s->ownerGroup = sG;
   sG->sprites.push_back(s);
   sG->ignoreCamera = ignoreCamera;
-  sG->info = std::make_shared<SpriteInfo>(info);
-  // mtx.lock();
-  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
-  // mtx.unlock();
+  sG->info = std::make_shared<SpriteInfo>();
+  windows[window]->getLayer(layer)->groups.push_back(sG);
+    // SDLA::Rendering::TextInfo* textInfo = new SDLA::Rendering::TextInfo();
+    // textInfo->info = new SDLA::Rendering::SpriteInfo();
+    // textInfo->info->offset = info->offset;
+    // textInfo->textureText = std::to_string(windows[window]->getWriteBuffer()[0]->id) + " " + std::to_string(windows[window]->getWriteBuffer()[1]->id) ;
+    // textInfo->fontName = "assets/Minecraft.ttf";
+    // textInfo->size = 12;
+    // textInfo->textColor = (SDL_Color) {255,255,255};
+    // SDLA::Rendering::Text::loadText(window, 1, textInfo, true);
   return s;
-
-  // std::shared_ptr<std::vector<std::shared_ptr<Sprite>>> fds = std::make_shared<std::vector<std::shared_ptr<Sprite>>>()
 }
 
-// No star bCuz shared pointer, lulz
-// Add an overload that will accept a groupInfo spriteInfo instaed of a groupID and will append
-std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group){
-  workingWindow = window;
-
-  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
-  else if(layer < 0) layer = 0;
+// Add ignore camera
+std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group, bool ignoreCamera){
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  sG->info = std::make_shared<SpriteInfo>(groupInfo);
+  sG->ignoreCamera = ignoreCamera;
+  sG->info = std::shared_ptr<SpriteInfo>(groupInfo);
   std::vector<std::shared_ptr<Sprite>> sV;
   for(int i = 0; i < group.size(); i++){
-    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i]);
+    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i], layer, ignoreCamera, window);
+    s->ownerGroup = sG;
     sV.push_back(s);
     sG->sprites.push_back(s);
   }
 
-  // mtx.lock();
-  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
-  // mtx.unlock();
+  windows[window]->getLayer(layer)->groups.push_back(sG);
   return sV;
 }
-
-// void Rendering::Sprite::setPosition(WorldPos position){
-//   mtx.lock();
-//   info->pos.worldPos = position;
-//   mtx.unlock();
-// }
-
-// void Rendering::Sprite::moveFromPosition(Vec2 move){
-//   mtx.lock();
-//   info->pos.worldPos.x += move.x;
-//   info->pos.worldPos.y += move.y;
-//   mtx.unlock();
-// }
 
 void Rendering::Sprite::changeSurface(std::string fileN){
   if(surfaces[info->fileName].useCount != -1){

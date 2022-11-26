@@ -7,7 +7,7 @@
 
 using namespace SDLA;
 
-std::shared_ptr<Rendering::Window> Rendering::newWindow(
+std::string Rendering::newWindow(
       int layerCount,
       Box windowSize,
       std::string name,
@@ -15,14 +15,13 @@ std::shared_ptr<Rendering::Window> Rendering::newWindow(
       SDL_WindowFlags mode
       ){
   std::shared_ptr<Window> window = std::make_shared<Window>(layerCount, windowSize, /* this->threadID,  */name, position, mode);
-  // window->name = name;
-
+  
   windows.insert({name, window});
   if(windows.size() == 1) {
-    currentWindow = window;
-    workingWindow = name;
+    currentWindow = name;
+    // workingWindow = name;
   }
-  return window;
+  return name;
 }
 
 void SDLA::Rendering::setGroupAsRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG){
@@ -59,46 +58,11 @@ void SDLA::Rendering::setGroupAsRotationCenter(std::shared_ptr<Rendering::Sprite
     minOffset.y = std::min(minOffset.y, sInfo->offset.y);
   }
 
-  Vec2 fullSize = (Vec2) {minOffset.x + groupBounds.width, minOffset.y + groupBounds.height};
+  Vec2 midSize = (Vec2) {minOffset.x + groupBounds.width, minOffset.y + groupBounds.height} / (Vec2) {2,2};
 
   for(std::shared_ptr<Renderable> s : sG->sprites){
-    s->info->rotCenter = &((fullSize / (Vec2) {2,2}) - s->info->offset);
+    *s->info->rotCenter = {midSize - s->info->offset};
   }
   // }
 
 }
-
-
-// // TODO check if image exists first
-// Rendering::SDLSurface* Rendering::loadSurface(std::string fileName, bool keepImgInMemory){
-//   if(!surfaces.count(fileName)){
-//     Rendering::SDLSurface newSur;
-//     newSur.sur = IMG_Load(fileName.c_str());
-//     newSur.fileName = fileName;
-//     if(keepImgInMemory) newSur.useCount = -1;
-//     else newSur.useCount = 1;
-//     surfaces.insert({fileName, newSur});
-
-//   } else if (keepImgInMemory){
-//     surfaces[fileName].useCount = -1;
-
-//   } else if (surfaces[fileName].useCount != -1){
-//     surfaces[fileName].useCount += 1;
-//   }
-
-//   return &surfaces[fileName];
-// }
-
-// Rendering::SDLFont* Rendering::loadFont(std::string fileName, int size){
-//   std::string fontName = fileName + std::to_string(size);
-//   if(!fonts.count(fontName)){
-//     Rendering::SDLFont newFont;
-//     newFont.font = TTF_OpenFont(fileName.c_str(), size);
-//     newFont.fileName = fontName;
-//     fonts.insert({fontName, newFont});
-//   }
-
-//   return &fonts[fontName];
-// }
-
-

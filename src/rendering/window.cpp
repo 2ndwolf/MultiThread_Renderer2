@@ -13,13 +13,17 @@ Rendering::Window::Window(
         std::string name,
         Vec2 position,
         SDL_WindowFlags mode
-        )
-      : writeBuffer(layerCount, std::make_shared<Layer>()){
+        ){
+
+  for(int i = 0; i < layerCount; i++){
+    writeBuffer.push_back(std::make_shared<Layer>());
+  }
 
   size = windowSize;
-  // this->layerCount = layerCount;
-  // this->winID = Identifier::newWinID();
-  // this->focusedWin = winID;
+
+  for(std::shared_ptr<Layer> lay : writeBuffer){
+    lay->id = SDLA::Identifier::newID();
+  }
 
   window = SDL_CreateWindow(name.c_str(),
                             position.x, 
@@ -30,36 +34,14 @@ Rendering::Window::Window(
   context = SDL_CreateRenderer(window, -1, render_flags);
   this->name = name;
   
-  // windows.push_back(std::make_shared<this>);
-
-  // groupBufferOld = new std::map<int, std::shared_ptr<SpriteGroup>>();
-  // groupBuffer = new std::map<int, std::shared_ptr<SpriteGroup>>();
 }
-
-// SDL_Texture* Rendering::Window::createTexture(SDL_Surface* surface){
-
-//   Rendering::mutex.lock();
-//   // context = context2;
-//   SDL_Texture* texture = SDL_CreateTextureFromSurface(context, surface);
-//   Rendering::mutex.unlock();
-//   return texture;
-// }
 
 void Rendering::Window::display(){
   SDL_RenderClear(context);
-  Vec2 offset;
-
-  // Check if = initialization is required.
-  // Vec2 camPos = (Vec2) {0,0};
+  updateGroupBuffer();
 
   // Layers shouldn't be erased
   for(int i = 0; i < readBuffer.size(); i++){
-
-    // firstSpriteGroup is actually not a group, so disable group properties
-    // is this still true?
-    // bool firstSpriteGroup = false;
-
-    updateGroupBuffer();
     
     if(readBuffer[i]->groups.size() != 0){
       readBuffer[i]->groups.erase(
@@ -68,15 +50,6 @@ void Rendering::Window::display(){
             if (sG->pendingErase) {
               return true;
             }
-
-            // if(firstSpriteGroup){
-            //   offset = readBuffer[i]->offset;
-            // } else {
-              // offset.x = readBuffer[i]->offset.x + sG->worldPos.x;
-              // offset.y = readBuffer[i]->offset.y + sG->worldPos.y;
-            // }
-
-
 
             sG->sprites.erase(
               std::remove_if(std::begin(sG->sprites), std::end(sG->sprites),
@@ -99,38 +72,22 @@ void Rendering::Window::display(){
                   std::shared_ptr<SpriteInfo> sInfo = s->info;
                   std::shared_ptr<SpriteInfo> sGInfo = sG->info;
 
-                  // Vec2* spriteOffset = &sInfo->offset;
-
                   SDL_Rect sdlRect = *s->getSDLRect();
 
-                  // if(firstSpriteGroup){
-                  //   WorldPos spriteWorldPos = sInfo->pos.worldPos;
-                  //   if(sInfo->ignoreCamera){
-                  //     sdlRect.x = spriteWorldPos.x + offset.x + spriteOffset->x;
-                  //     sdlRect.y = spriteWorldPos.y + offset.y + spriteOffset->y;
-                  //   } else {
-                  //     sdlRect.x = spriteWorldPos.x - camPos.x + offset.x + spriteOffset->x;
-                  //     sdlRect.y = spriteWorldPos.y - camPos.y + offset.y + spriteOffset->y;
-                  //   }
-                  //   SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, sInfo->angle, (SDL_Point*) sInfo->rotCenter, sInfo->flip);
-                  // } else {
-                    // TODO take into account the group's worldpos ktnxplz
-                    if(s->getIgnoreCamera()){
-                      sdlRect.x = readBuffer[i]->offset.x + sInfo->offset.x + sGInfo->offset.x;
-                      sdlRect.y = readBuffer[i]->offset.y + sInfo->offset.y + sGInfo->offset.y;
-                    } else {
-                      sdlRect.x = readBuffer[i]->offset.x + sInfo->offset.x + (sGInfo->worldPos.x - camPos.x);
-                      sdlRect.y = readBuffer[i]->offset.y + sInfo->offset.y + (sGInfo->worldPos.y - camPos.y);
-                    }
-                    SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, sGInfo->angle, (SDL_Point*) sInfo->rotCenter, sInfo->flip);
-                  // }
+                  if(s->getIgnoreCamera()){
+                    sdlRect.x = readBuffer[i]->offset.x + sInfo->offset.x + sGInfo->offset.x;
+                    sdlRect.y = readBuffer[i]->offset.y + sInfo->offset.y + sGInfo->offset.y;
+                  } else {
+                    sdlRect.x = readBuffer[i]->offset.x + sInfo->offset.x + (sGInfo->worldPos.x - camPos.x);
+                    sdlRect.y = readBuffer[i]->offset.y + sInfo->offset.y + (sGInfo->worldPos.y - camPos.y);
+                  }
+                  SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, sGInfo->angle, (SDL_Point*) sInfo->rotCenter, sInfo->flip);
                 }
                 return false;
               }
               ),
               std::end(sG->sprites)
             );
-            // firstSpriteGroup = false;
             return false;
           }
           ),
