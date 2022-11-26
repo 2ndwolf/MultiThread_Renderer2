@@ -10,12 +10,16 @@
 #include "identifier.h"
 
 
-SDLA::Rendering::Text::Text(SDLA::Rendering::SpriteInfo* info, std::string textureText, std::string fontName, int size, SDL_Color textColor){
+SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool ignoreCamera)
+: Renderable(txtInfo->info, layer){
+  txtID = SDLA::Identifier::newtxtID();
 
-  SDLA::Rendering::SDLSurface* txtSur = SDLA::Rendering::loadTextSurface(textureText, loadFont(fontName,size)->font, textColor);
-  this->info = info;
+  SDLA::Rendering::SDLSurface* txtSur = SDLA::Rendering::Text::loadSurface(txtInfo->textureText, txtInfo);
+  // this->info = std::make_shared<SDLA::Rendering::SpriteInfo>(txtInfo->info);
+  // this->info->fileName = txtSur->fileName;
+  this->textInfo = std::make_shared<TextInfo>(txtInfo);
   this->info->fileName = txtSur->fileName;
-  myWin = win;
+  windowOwnerName = workingWindow;
 
   srcRect.x = info->area.pos.x;
   srcRect.y = info->area.pos.y;
@@ -31,22 +35,25 @@ SDLA::Rendering::Text::Text(SDLA::Rendering::SpriteInfo* info, std::string textu
   sdlRect.x = 0;
   sdlRect.y = 0;
 
-  color = textColor;
+  // color = txtInfo->textColor;
 }
 
-std::shared_ptr<SDLA::Rendering::SpriteGroup> SDLA::Rendering::Text::loadText(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SDLA::Rendering::SpriteInfo* info, std::string textureText, std::string fontName, int size, SDL_Color textColor){
-  setWorkingWindow(window);
+std::shared_ptr<SDLA::Rendering::Text> SDLA::Rendering::Text::loadText(std::string window, int layer, SDLA::Rendering::TextInfo* txtInfo, bool ignoreCamera){
+  workingWindow = window;
 
-  if(layer > win->getLayerCount()) layer =  win->getLayerCount();
+  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
   else if(layer < 0) layer = 0;
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  sG->sprites.push_back(std::make_shared<Text>(info, textureText, fontName, size, textColor));
-  sG->info = info;
-  mtx.lock();
-  win->getLayer(layer)->groupBuffer.push_back(sG);
-  mtx.unlock();
-  return sG;
+  std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera);
+  txt->ownerGroup = sG;
+  sG->sprites.push_back(txt);
+  sG->ignoreCamera = ignoreCamera;
+  sG->info = std::make_shared<SpriteInfo>(txtInfo->info);
+  // mtx.lock();
+  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
+  // mtx.unlock();
+  return txt;
   //Get rid of preexisting texture
   // free();
 
@@ -84,3 +91,29 @@ std::shared_ptr<SDLA::Rendering::SpriteGroup> SDLA::Rendering::Text::loadText(st
   // return mTexture != NULL;
 }
 // }
+
+// void SDLA::Rendering::Text::updateText(std::string text){
+//   this->info->
+// }
+
+SDLA::Rendering::SDLSurface* SDLA::Rendering::Text::loadSurface(std::string textureText, SDLA::Rendering::TextInfo* txtInfo){
+
+  SDLSurface newSur;
+  newSur.sur = TTF_RenderText_Solid(loadFont(txtInfo->fontName, txtInfo->size)->font, textureText.c_str(), txtInfo->textColor);
+  newSur.fileName = "TEXT" + std::to_string(SDLA::Identifier::newtxtID()) + txtInfo->fontName + std::to_string(txtInfo->size);
+  surfaces.insert({newSur.fileName, newSur});
+
+  return &surfaces[newSur.fileName];
+}
+
+SDLA::Rendering::SDLFont* SDLA::Rendering::Text::loadFont(std::string fileName, int size){
+  std::string fontName = fileName + std::to_string(size);
+  if(!fonts.count(fontName)){
+    Rendering::SDLFont newFont;
+    newFont.font = TTF_OpenFont(fileName.c_str(), size);
+    newFont.fileName = fontName;
+    fonts.insert({fontName, newFont});
+  }
+
+  return &fonts[fontName];
+}

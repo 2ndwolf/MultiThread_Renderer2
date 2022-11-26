@@ -6,12 +6,13 @@
 using namespace SDLA;
 
 
-Rendering::Sprite::Sprite(Rendering::SpriteInfo* info){
-  SDLSurface* mySur = Rendering::loadSurface(info->fileName);
+Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera)
+: Renderable(info, layer){
+  SDLSurface* mySur = loadSurface(info->fileName);
 
-  this->fileName = info->fileName;
-  this->info = info;
-  myWin = win;
+  // this->fileName = info->fileName;
+  // this->info = info;
+  windowOwnerName = workingWindow;
   
   srcRect.x = info->area.pos.x;
   srcRect.y = info->area.pos.y;
@@ -26,61 +27,89 @@ Rendering::Sprite::Sprite(Rendering::SpriteInfo* info){
   }
 }
 
-std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImage(std::shared_ptr<SDLA::Rendering::Window> window, int layer, Rendering::SpriteInfo* info){
-  setWorkingWindow(window);
+std::shared_ptr<SDLA::Rendering::Sprite> Rendering::Sprite::addImage(std::string window, int layer, Rendering::SpriteInfo* info, bool ignoreCamera){
+  workingWindow = window;
 
-  if(layer > win->getLayerCount()) layer =  win->getLayerCount();
+  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
   else if(layer < 0) layer = 0;
 
+  std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera);
+
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  sG->sprites.push_back(std::make_shared<Sprite>(info));
-  sG->info = info;
-  mtx.lock();
-  win->getLayer(layer)->groupBuffer.push_back(sG);
-  mtx.unlock();
-  return sG;
+  sG->sprites.push_back(s);
+  sG->ignoreCamera = ignoreCamera;
+  sG->info = std::make_shared<SpriteInfo>(info);
+  // mtx.lock();
+  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
+  // mtx.unlock();
+  return s;
+
+  // std::shared_ptr<std::vector<std::shared_ptr<Sprite>>> fds = std::make_shared<std::vector<std::shared_ptr<Sprite>>>()
 }
 
 // No star bCuz shared pointer, lulz
 // Add an overload that will accept a groupInfo spriteInfo instaed of a groupID and will append
-std::shared_ptr<Rendering::SpriteGroup> Rendering::Sprite::addImageGroup(std::shared_ptr<SDLA::Rendering::Window> window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group){
-  setWorkingWindow(window);
-  if(layer > win->getLayerCount()) layer =  win->getLayerCount();
+std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group){
+  workingWindow = window;
+
+  if(layer > windows[workingWindow]->getLayerCount()) layer =  windows[workingWindow]->getLayerCount();
   else if(layer < 0) layer = 0;
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  sG->info = groupInfo;
+  sG->info = std::make_shared<SpriteInfo>(groupInfo);
+  std::vector<std::shared_ptr<Sprite>> sV;
   for(int i = 0; i < group.size(); i++){
-    sG->sprites.push_back(std::make_shared<Sprite>(group[i]));
+    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i]);
+    sV.push_back(s);
+    sG->sprites.push_back(s);
   }
 
-  mtx.lock();
-  win->getLayer(layer)->groupBuffer.push_back(sG);
-  mtx.unlock();
-  return sG;
+  // mtx.lock();
+  windows[workingWindow]->getLayer(layer)->groups.push_back(sG);
+  // mtx.unlock();
+  return sV;
 }
 
-void Rendering::Sprite::setPosition(WorldPos position){
-  mtx.lock();
-  info->pos.worldPos = position;
-  mtx.unlock();
-}
+// void Rendering::Sprite::setPosition(WorldPos position){
+//   mtx.lock();
+//   info->pos.worldPos = position;
+//   mtx.unlock();
+// }
 
-void Rendering::Sprite::moveFromPosition(Vec2 move){
-  mtx.lock();
-  info->pos.worldPos.x += move.x;
-  info->pos.worldPos.y += move.y;
-  mtx.unlock();
-}
+// void Rendering::Sprite::moveFromPosition(Vec2 move){
+//   mtx.lock();
+//   info->pos.worldPos.x += move.x;
+//   info->pos.worldPos.y += move.y;
+//   mtx.unlock();
+// }
 
-void Rendering::Sprite::changeSurface(std::shared_ptr<Rendering::Renderable> spr, std::string fileN){
-  if(surfaces[spr->info->fileName].useCount != -1){
-    surfaces[spr->info->fileName].useCount -= 1;
-    if(surfaces[spr->info->fileName].useCount == 0) surfaces.erase(spr->info->fileName);
+void Rendering::Sprite::changeSurface(std::string fileN){
+  if(surfaces[info->fileName].useCount != -1){
+    surfaces[info->fileName].useCount -= 1;
+    if(surfaces[info->fileName].useCount == 0) surfaces.erase(info->fileName);
   }
   
-  Rendering::loadSurface(fileN);
-  spr->info->fileName = fileN;
+  loadSurface(fileN);
+  info->fileName = fileN;
+  texQueued = true;
+}
 
-  spr->texQueued = true;
+// TODO check if image exists first
+Rendering::SDLSurface* Rendering::Sprite::loadSurface(std::string fileName, bool keepImgInMemory){
+  if(!surfaces.count(fileName)){
+    Rendering::SDLSurface newSur;
+    newSur.sur = IMG_Load(fileName.c_str());
+    newSur.fileName = fileName;
+    if(keepImgInMemory) newSur.useCount = -1;
+    else newSur.useCount = 1;
+    surfaces.insert({fileName, newSur});
+
+  } else if (keepImgInMemory){
+    surfaces[fileName].useCount = -1;
+
+  } else if (surfaces[fileName].useCount != -1){
+    surfaces[fileName].useCount += 1;
+  }
+
+  return &surfaces[fileName];
 }
