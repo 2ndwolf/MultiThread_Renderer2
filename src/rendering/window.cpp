@@ -48,63 +48,8 @@ void Rendering::Window::display(){
   for(int i = 0; i < readBuffer.size(); i++){
     
     if(readBuffer[i]->groups.size() != 0){
-      if(readBuffer[i]->hidden) {continue;}
-      for(std::shared_ptr<SpriteGroup> sG : readBuffer[i]->groups){
-        if(sG->hidden) continue;
-        sG->sprites.erase(
-          std::remove_if(std::begin(sG->sprites), std::end(sG->sprites),
-            [&] (std::shared_ptr<Renderable> s) -> bool {
-            if(s->pendingErase) return true;
 
-            if(s->info->hidden) return false;
-
-            std::shared_ptr<SuperGroup> superGroup = sG->superGroup;
-            while(superGroup != nullptr){
-              if(superGroup->hidden) return false;
-              superGroup = superGroup->parentGroup;
-            }
-
-            if(s->texQueued){
-              s->setTexture(SDL_CreateTextureFromSurface(context, Rendering::surfaces[s->getFileName()].sur));
-              Bounds area = s->info->area;
-              if(area.box.width == 0 || area.box.height == 0){
-                SDL_QueryTexture(s->getTexture(), NULL, NULL, &area.box.width, &area.box.height);
-                s->setCrop(area, true);
-              }
-              s->texQueued = false;
-            }
-
-            std::shared_ptr<SpriteInfo> sInfo = s->info;
-            // std::shared_ptr<SpriteInfo> sGInfo = sG->info;
-
-            // mutex.lock();
-            SDL_Rect sdlRect = *s->getSDLRect();
-
-            if(s->getIgnoreCamera() || sG->superGroup == nullptr){
-              sdlRect.x = readBuffer[i]->offset.x + sInfo->offset.x + sG->offset.x;
-              sdlRect.y = readBuffer[i]->offset.y + sInfo->offset.y + sG->offset.y;
-            } else {
-              Vec2 superMov = {0,0};
-              superGroup = sG->superGroup;
-              while(superGroup != nullptr){
-                superMov = superMov + superGroup->offset + superGroup->worldPos;
-                superGroup = superGroup->parentGroup;
-              }
-              sdlRect.x += superMov.x - camPos.x + readBuffer[i]->offset.x + sInfo->offset.x + sG->offset.x;
-              sdlRect.y += superMov.y - camPos.y + readBuffer[i]->offset.y + sInfo->offset.y + sG->offset.y;
-
-            }
-            SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, s->getAngleFromGroup ? sG->angle : sInfo->angle, (SDL_Point*) sInfo->rotCenter, sInfo->flip);
-            // mutex.unlock();
-          
-            return false;
-          }
-          ),
-          std::end(sG->sprites)
-        );
-
-      }
-      /* readBuffer[i]->groups.erase(
+      readBuffer[i]->groups.erase(
         std::remove_if(std::begin(readBuffer[i]->groups), std::end(readBuffer[i]->groups),
           [&] (std::shared_ptr<SpriteGroup> sG) -> bool {
             if (sG->pendingErase) return true;
@@ -173,24 +118,24 @@ void Rendering::Window::display(){
           }
           ),
           std::end(readBuffer[i]->groups)
-       );*/
+       );
       }
     }
   SDL_RenderPresent(context);
   // TODO 
   // SDL_Delay(1); 
-  ms = SDL_GetTicks();
-  if(ms < 5000) {} else if (ms <= 10000) {fps++;}
-  if(ms >= 10000 && !fpsShown){
-    SDLA::Rendering::TextInfo* textInfo = new SDLA::Rendering::TextInfo();
-    textInfo->info = new SDLA::Rendering::SpriteInfo();
-    textInfo->info->offset = {0,350};
-    textInfo->textureText = std::to_string(fps/5) ;
-    textInfo->fontName = "assets/Minecraft.ttf";
-    textInfo->size = 12;
-    textInfo->textColor = (SDL_Color) {255,255,255};
-    SDLA::Rendering::Text::loadText(currentWindow, 1, textInfo, true);
-    fpsShown = true;
-  }
+  // ms = SDL_GetTicks();
+  // if(ms < 5000) {} else if (ms <= 10000) {fps++;}
+  // if(ms >= 10000 && !fpsShown){
+  //   SDLA::Rendering::TextInfo* textInfo = new SDLA::Rendering::TextInfo();
+  //   textInfo->info = new SDLA::Rendering::SpriteInfo();
+  //   textInfo->info->offset = {0,350};
+  //   textInfo->textureText = std::to_string(fps/5) ;
+  //   textInfo->fontName = "assets/Minecraft.ttf";
+  //   textInfo->size = 12;
+  //   textInfo->textColor = (SDL_Color) {255,255,255};
+  //   SDLA::Rendering::Text::loadText(currentWindow, 1, textInfo, true);
+  //   fpsShown = true;
+  // }
 }
 
