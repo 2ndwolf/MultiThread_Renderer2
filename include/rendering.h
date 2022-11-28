@@ -23,6 +23,8 @@
 
 namespace SDLA {
 
+  class Rendering;
+  inline static SDLA::Rendering* render;
 
   class Rendering {
     public:
@@ -133,6 +135,7 @@ namespace SDLA {
 
     Rendering(){
       renderThread = std::thread(mane, this);
+      render = this;
     }
 
     ~Rendering(){
