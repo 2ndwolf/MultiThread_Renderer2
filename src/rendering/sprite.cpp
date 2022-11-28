@@ -6,8 +6,24 @@
 using namespace SDLA;
 
 
-Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window)
-: Renderable(info, layer, window){
+Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup)
+: Renderable(info, layer, window, ownerGroup){
+  SDLSurface* mySur = loadSurface(info->fileName);
+  
+  srcRect.x = info->area.pos.x;
+  srcRect.y = info->area.pos.y;
+
+  if(info->area.box.width != 0 && info->area.box.height != 0){
+    srcRect.w = info->area.box.width;
+    srcRect.h = info->area.box.height;
+    sdlRect.w = info->area.box.width;
+    sdlRect.h = info->area.box.height;
+    sdlRect.x = 0;
+    sdlRect.y = 0;
+  }
+}
+Rendering::Sprite::Sprite(std::shared_ptr<Rendering::SpriteInfo> info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup)
+: Renderable(info, layer, window, ownerGroup){
   SDLSurface* mySur = loadSurface(info->fileName);
   
   srcRect.x = info->area.pos.x;
@@ -24,17 +40,12 @@ Rendering::Sprite::Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCam
 }
 
 std::shared_ptr<SDLA::Rendering::Sprite> Rendering::Sprite::addImage(std::string window, int layer, Rendering::SpriteInfo* info, bool ignoreCamera){
-  // workingWindow = window;
-
-
-
-  std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera, window);
-
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  s->ownerGroup = sG;
+  std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera, window, sG);
+  // s->ownerGroup = sG;
   sG->sprites.push_back(s);
   sG->ignoreCamera = ignoreCamera;
-  sG->info = std::make_shared<SpriteInfo>();
+  // sG->info = std::make_shared<SpriteInfo>();
   windows[window]->getLayer(layer)->groups.push_back(sG);
     // SDLA::Rendering::TextInfo* textInfo = new SDLA::Rendering::TextInfo();
     // textInfo->info = new SDLA::Rendering::SpriteInfo();
@@ -47,16 +58,29 @@ std::shared_ptr<SDLA::Rendering::Sprite> Rendering::Sprite::addImage(std::string
   return s;
 }
 
-// Add ignore camera
-std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteInfo* groupInfo, std::vector<SpriteInfo*> group, bool ignoreCamera){
+// DO NOT Add an overload for std::shared_ptr<SpriteGroup> where it adds the images to the group instead of creating a new group
+// It won't be possible to add sprites to a spriteGroup -> segmentation fault possibility
+std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteGroup* groupInfo, std::vector<SpriteInfo*> group){
 
-  std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  sG->ignoreCamera = ignoreCamera;
-  sG->info = std::shared_ptr<SpriteInfo>(groupInfo);
+  std::shared_ptr<SpriteGroup> sG = std::shared_ptr<SpriteGroup>(groupInfo);
+  sG->sprites = {};
   std::vector<std::shared_ptr<Sprite>> sV;
   for(int i = 0; i < group.size(); i++){
-    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i], layer, ignoreCamera, window);
-    s->ownerGroup = sG;
+    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i], layer, sG->ignoreCamera, window, sG);
+    sV.push_back(s);
+    sG->sprites.push_back(s);
+  }
+
+  windows[window]->getLayer(layer)->groups.push_back(sG);
+  return sV;
+}
+std::vector<std::shared_ptr<SDLA::Rendering::Sprite>> Rendering::Sprite::addImageGroup(std::string window, int layer, SpriteGroup* groupInfo, std::vector<std::shared_ptr<SpriteInfo>> group){
+
+  std::shared_ptr<SpriteGroup> sG = std::shared_ptr<SpriteGroup>(groupInfo);
+  sG->sprites = {};
+  std::vector<std::shared_ptr<Sprite>> sV;
+  for(int i = 0; i < group.size(); i++){
+    std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i], layer, sG->ignoreCamera, window, sG);
     sV.push_back(s);
     sG->sprites.push_back(s);
   }

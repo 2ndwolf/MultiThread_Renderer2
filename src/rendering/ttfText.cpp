@@ -10,8 +10,8 @@
 #include "identifier.h"
 
 
-SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool ignoreCamera, std::string window)
-: Renderable(txtInfo->info, layer, window){
+SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup)
+: Renderable(txtInfo->info, layer, window, ownerGroup){
   txtID = SDLA::Identifier::newtxtID();
 
   SDLA::Rendering::SDLSurface* txtSur = SDLA::Rendering::Text::loadSurface(txtInfo->textureText, txtInfo);
@@ -36,11 +36,11 @@ SDLA::Rendering::Text::Text(SDLA::Rendering::TextInfo* txtInfo, int layer, bool 
 std::shared_ptr<SDLA::Rendering::Text> SDLA::Rendering::Text::loadText(std::string window, int layer, SDLA::Rendering::TextInfo* txtInfo, bool ignoreCamera){
 
   std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-  std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera, window);
-  txt->ownerGroup = sG;
+  std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera, window, sG);
+  // txt->ownerGroup = sG;
   sG->sprites.push_back(txt);
   sG->ignoreCamera = ignoreCamera;
-  sG->info = std::make_shared<SpriteInfo>();
+  // sG->info = std::make_shared<SpriteInfo>();
   // mutex.lock();
   windows[window]->getLayer(layer)->groups.push_back(sG);
   // mutex.unlock();

@@ -33,7 +33,9 @@
 // }
 
 void SDLA::Rendering::Renderable::setCrop(Bounds crop, bool rendererCall){
-  if(!rendererCall) mutex.lock();
+  // GET WINDOW'S MUTEX
+  
+  if(!rendererCall) getWindow(myWindow)->mutex.lock();
   info->area = crop;
   srcRect.w = crop.box.width;
   srcRect.h = crop.box.height;
@@ -41,5 +43,15 @@ void SDLA::Rendering::Renderable::setCrop(Bounds crop, bool rendererCall){
   srcRect.y = crop.pos.y;
   sdlRect.w = crop.box.width;
   sdlRect.h = crop.box.height;
-  if(!rendererCall) mutex.unlock();
+  if(!rendererCall) getWindow(myWindow)->mutex.lock();
 }
+
+SDLA::Bounds SDLA::Rendering::Renderable::getBounds(){ 
+SDLA::Vec2 myOffset = windows[myWindow]->getBuffer()[layer]->offset + info->offset;
+std::shared_ptr<SDLA::Rendering::SuperGroup> superGroup = ownerGroup->superGroup;
+while(superGroup != nullptr) {
+  myOffset = myOffset + superGroup->offset + (ownerGroup->ignoreCamera ? (Vec2){0,0} : superGroup->worldPos);
+  superGroup = superGroup->parentGroup;
+}
+return {myOffset, {getSDLRect()->w,getSDLRect()->h}};}
+
