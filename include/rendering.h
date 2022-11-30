@@ -27,47 +27,191 @@ namespace SDLA {
   inline static SDLA::Rendering* render;
 
   class Rendering {
+    // private:
+    // protected:
+    // public:
     public:
-    struct SDLSurface;
-    struct SDLFont;
     class Renderable;
     class Window;
 
+    struct SDLSurface;
+    struct SDLFont;
+
+    struct Info{
+      Vec2 offset;
+      bool ignoreCamera = true;
+      bool hidden = false;
+      int angle = 0;
+      Vec2* rotCenter = nullptr;
+
+      std::atomic<bool> pendingErase = false;
+
+      Info(
+        Vec2 offset,
+        bool ignoreCamera = true,
+        bool hidden = false,
+        int angle = 0,
+        Vec2* rotCenter = nullptr
+      ){
+        this->offset = offset;
+        this->ignoreCamera = ignoreCamera;
+        this->hidden = hidden;
+        this->angle = angle;
+        this->rotCenter = rotCenter;
+      }
+      Info(Info* info){
+        Info(
+          info->offset, 
+          info->ignoreCamera, 
+          info->hidden, 
+          info->angle, 
+          info->rotCenter);
+      }
+      Info(std::shared_ptr<Info> info){
+        Info(
+          info->offset, 
+          info->ignoreCamera, 
+          info->hidden, 
+          info->angle, 
+          info->rotCenter);
+      }
+      void fillInfo (Info* fillMe,
+        Info* info
+      ){
+        fillMe = new Info(info);
+      }
+      void fillInfo (Info* fillMe,
+        std::shared_ptr<Info> info
+      ){
+        fillMe = new Info(info);
+      }
+    };
+
+    struct SuperGroup : Info{
+      std::shared_ptr<SuperGroup> parentGroup = nullptr;
+      // std::shared_ptr<SuperGroup> childGroup = nullptr;
+
+      Vec2 worldPos = {0,0};
+      std::atomic<bool> childFramesDrawn = false;
+    };
+
+
+    struct SpriteGroup : Info {
+      // Vec2 offset ??
+      std::shared_ptr<SuperGroup> superGroup = nullptr;
+      // std::shared_ptr<SpriteInfo> info;
+      std::vector<std::shared_ptr<Renderable>> sprites;
+
+      SpriteGroup();
+      std::shared_ptr<SpriteGroup> createSpriteGroup(
+        Info* info
+        // Vec2 offset,
+        // bool ignoreCamera = true,
+        // bool hidden = false,
+        // int angle = 0,
+        // Vec2* rotCenter = nullptr
+      ){
+        fillInfo(this, info);
+        return std::shared_ptr<SpriteGroup>(this);
+      }
+
+    };
+
+    struct TextInfo : Info{
+      std::string text;
+      std::string fontName;
+      int size;
+      SDL_Color textColor;
+
+      TextInfo();
+
+      std::shared_ptr<TextInfo> create(
+        Info* info,
+        std::string text,
+        std::string fontName,
+        int size,
+        SDL_Color textColor
+      ){
+        fillInfo(this, info);
+        this->text = text;
+        this->fontName = fontName;
+        this->size = size;
+        this->textColor = textColor;
+        return std::shared_ptr<TextInfo>(this);
+      }
+    };
+
+    struct SpriteInfo : Info{
+      Bounds area;
+      SDL_RendererFlip flip;
+      std::string fileName;
+      std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
+      
+      SpriteInfo();
+
+      std::shared_ptr<SpriteInfo> share(){return std::make_shared<SpriteInfo>(this)};     
+
+      std::shared_ptr<SpriteInfo> createSpriteInfo(
+        Info* info,
+        Bounds area,
+        std::string fileName = "assets/gen_specialchest.png",
+        SDL_RendererFlip flip = SDL_FLIP_NONE
+      ){
+        fillInfo(this, info);
+        this->area = area;
+        this->fileName = fileName;
+        this->flip = flip;
+        return std::shared_ptr<SpriteInfo>(this);
+      }
+      std::shared_ptr<SpriteInfo> createSpriteInfo(
+        std::shared_ptr<TextInfo> info,
+        SDL_RendererFlip flip = SDL_FLIP_NONE
+      ){
+        fillInfo(this, info);
+        this->flip = flip;
+        return std::shared_ptr<SpriteInfo>(this);
+      }
+    };
+
     protected:
+
     inline static std::string currentWindow;
     inline static std::map<std::string, SDLSurface> surfaces;
     inline static std::map<std::string, SDLFont> fonts;
 
-    std::thread renderThread;
-
-    // inline static std::string workingWindow;
     inline static std::map<std::string, std::shared_ptr<Window>> windows;
-    // static void setWorkingWindow(std::string window){workingWindow = window;};
 
-    struct GroupedMovements {
-      Vec2 newPos;
-      std::vector<std::shared_ptr<Renderable>> renderables = std::vector<std::shared_ptr<Renderable>>();
-      bool worldPos = false;
-    };
+
+
+    // struct GroupedMovements {
+    //   Vec2 newPos;
+    //   std::vector<std::shared_ptr<Renderable>> renderables = std::vector<std::shared_ptr<Renderable>>();
+    //   bool worldPos = false;
+    // };
 
 
     private:
 
     void mane(){
-      // std::map<std::string, std::shared_ptr<SDLA::Rendering::Window>>::iterator it;
+      std::map<std::string, std::shared_ptr<SDLA::Rendering::Window>>::iterator it;
       while (true) {
-        if(windows.size() != 0) windows[currentWindow]->display();
-        //   for(it = windows.begin(); it != windows.end(); it++){
-        //     if (it->second->pendingErase) {
-        //       it = windows.erase(it);
-        //     } else {
+        if(windows.size() != 0) {/* windows[currentWindow]->display(); */
+          for(it = windows.begin(); it != windows.end(); it++){
 
-        //       it->second->display();
+            if (it->second == nullptr ||
+                it->second->pendingErase) {
 
-        //       it++;
-        //     }
-        //   }
-        // }
+              it = windows.erase(it);
+              continue;
+
+            } else if (!it->second->getHasOwnThread()) {
+
+              it->second->display();
+
+            }
+            it++;
+          }
+        }
       }
     }
     
@@ -90,64 +234,20 @@ namespace SDLA {
     class Sprite;
     class Renderable;
 
-    struct Info{
-      std::atomic<bool> hidden = false;
-      std::atomic<int> angle = 0;
-      Vec2* rotCenter = nullptr;
-      Vec2 offset = {0,0};
-      std::atomic<bool> pendingErase = false;
-      std::atomic<bool> ignoreCamera = true;
-      // int layer;
-    };
 
-    struct SuperGroup : Info{
-      std::shared_ptr<SuperGroup> parentGroup = nullptr;
-      // std::shared_ptr<SuperGroup> childGroup = nullptr;
+    // Rendering(){    }
 
-      Vec2 worldPos = {0,0};
+    // ~Rendering(){
 
-      std::atomic<bool> childFramesDrawn = false;
+      // windows = {};};
 
-    };
-
-    
-    struct SpriteGroup : Info {
-      // Vec2 offset ??
-      std::shared_ptr<SuperGroup> superGroup = nullptr;
-      // std::shared_ptr<SpriteInfo> info;
-      std::vector<std::shared_ptr<Renderable>> sprites;
-    };
-
-    struct SpriteInfo : Info{
-      Bounds area;
-      SDL_RendererFlip flip = SDL_FLIP_NONE;
-      std::string fileName = "assets/gen_specialchest.png";
-      std::shared_ptr<SpriteGroup> ownerGroup = nullptr;
-    };
-
-    typedef struct {
-      SpriteInfo* info;
-      std::string textureText;
-      std::string fontName;
-      int size;
-      SDL_Color textColor;
-    } TextInfo;
-
-    Rendering(){
-      renderThread = std::thread(mane, this);
-      render = this;
-    }
-
-    ~Rendering(){
-      renderThread.detach();
-      windows = {};};
-
-    std::string newWindow(
+    static std::string newWindow(
         int layerCount,
         Box windowSize,
         std::string name = "Abstraction",
         Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
-        SDL_WindowFlags mode = SDL_WINDOW_RESIZABLE
+        SDL_WindowFlags mode = SDL_WINDOW_RESIZABLE,
+        bool hasOwnThread = false
     );
     static void setGroupAsRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG);
     static void setGroupRotationCenter(std::shared_ptr<Rendering::SpriteGroup> sG, Vec2 center);
@@ -155,16 +255,38 @@ namespace SDLA {
     static const std::string getCurrentWindowName(){return currentWindow;};
     static const std::shared_ptr<Window> getCurrentWindow(){return windows[currentWindow];};
     static const std::shared_ptr<Window> getWindow(std::string drawWindow){return windows[drawWindow];};
+    static const int getWindowCount(){return windows.size();};
+    static void pollWindowEvents(SDL_Event event){
+      std::map<std::string, std::shared_ptr<SDLA::Rendering::Window>>::iterator it;
+      if(windows.size() != 0) {/* windows[currentWindow]->display(); */
+        for(it = windows.begin(); it != windows.end(); it++){
+          it->second->pollEvents(event);
+        }
+      }
+    }
     // static const std::mutex getDrawWindowMutex(std::string drawWindow){return windows[drawWindow]->;};
     // static std::string getWorkingWindow(){return workingWindow;}
 
     class Window {
       protected:
-      std::vector<GroupedMovements> groupedMovements = std::vector<GroupedMovements>();
+      // std::vector<GroupedMovements> groupedMovements = std::vector<GroupedMovements>();
       // struct Layer;
 
 
       private:
+      void mane(){
+        while(!pendingErase) windows[name]->display();
+
+        windows[name] = nullptr;
+
+      }
+      std::thread renderThread;
+      bool hasOwnThread = false;
+
+      int ms = 0;
+      int fps = 0;
+      bool fpsShown;
+
       SDL_WindowFlags windowFlags;
       struct Layer{
         std::vector<std::shared_ptr<SpriteGroup>> groups = std::vector<std::shared_ptr<SpriteGroup>>();
@@ -181,6 +303,7 @@ namespace SDLA {
       // };
 
       Box size;
+
       
       // struct Layers{
       // DoubleBuffer doubleBuffer;
@@ -210,12 +333,16 @@ namespace SDLA {
       }
 
       public:
-      // std::atomic<bool> writeBufferBusy = false;
-      std::mutex mutex;
+      // std::atomic<bool> writeBufferBusy = false;    
+      const int getBufferSize(){return writeBuffer.size();};
 
+      std::mutex mutex;
 
       Vec2 imageOffset;
       Vec2 camPos = {0,0};
+
+      Vec2 position;
+      // Uint32 windowID;
 
       // ~Window();
 
@@ -224,7 +351,8 @@ namespace SDLA {
         Box windowSize,
         std::string name,
         Vec2 position,
-        SDL_WindowFlags mode
+        SDL_WindowFlags mode,
+        bool hasOwnThread = false
         );
 
 
@@ -234,6 +362,9 @@ namespace SDLA {
       void offsetLayer(int layer, Vec2 offset){writeBuffer[layer]->offset = offset;};
 
       const std::vector<std::shared_ptr<Layer>> getBuffer(){return writeBuffer;};
+      const bool getHasOwnThread() {return hasOwnThread;};
+      SDL_Window* getSDL_Window(){return window;};
+
       int clampLayerIndex(int layer){
         return std::max(std::min(layer,getLayerCount()-1),0);
       }
@@ -246,10 +377,11 @@ namespace SDLA {
       // static ID getCurrentWindowID(){return focusedWin;};
       // ID getID(){return window->winID;};
 
-      // SDL_Renderer* const getContext(){return context;};
+      SDL_Renderer* const getContext(){return context;};
       // SDL_Texture* createTexture(SDL_Surface* surface);
       // int const getThread(){return threadID;};
       void display();
+      void pollEvents(SDL_Event event);
 
       std::atomic<bool> pendingErase = false; 
       void close(){pendingErase = true;};
@@ -303,16 +435,6 @@ namespace SDLA {
       std::string const getFileName(){return info->fileName;};
 
       protected:
-      Renderable(SpriteInfo* info, int layer, std::string window, std::shared_ptr<SpriteGroup> ownerGroup){
-        // this->ignoreCamera = ignoreCamera;
-        // std::shared_ptr<SpriteInfo> sprI = std::make
-        this->info = std::shared_ptr<SpriteInfo>(info);
-        this->layer = windows[window]->clampLayerIndex(layer);
-        // this->info->layer = this->layer;
-        this->myWindow = window;
-        this->ownerGroup = ownerGroup;
-        // this->fileName = info->fileName;
-      };
       Renderable(std::shared_ptr<SpriteInfo> info, int layer, std::string window, std::shared_ptr<SpriteGroup> ownerGroup){
         // this->ignoreCamera = ignoreCamera;
         // std::shared_ptr<SpriteInfo> sprI = std::make
@@ -337,11 +459,11 @@ namespace SDLA {
 
     class Text : public Renderable{
       public:
-      Text(TextInfo* txtInfo, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup);
+      Text(std::shared_ptr<TextInfo> txtInfo, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup);
 
-      static std::shared_ptr<Text> loadText(std::string window, int layer, TextInfo* txtInfo, bool ignoreCamera);
+      static std::shared_ptr<Text> loadText(std::string window, int layer, std::shared_ptr<SDLA::Rendering::TextInfo> txtInfo, bool ignoreCamera);
       static SDLFont* loadFont(std::string fileName, int size);
-      static SDLSurface* loadSurface(std::string textureText, TextInfo* txtInfo);
+      static SDLSurface* loadSurface(std::shared_ptr<TextInfo> txtInfo);
 
       void updateText(std::string text);
       void changeFont(std::string fontName);
@@ -373,13 +495,13 @@ namespace SDLA {
 
     class Sprite : public Renderable{
       public:
-      Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup);
+      // Sprite(Rendering::SpriteInfo* info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup);
       Sprite(std::shared_ptr<Rendering::SpriteInfo> info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup);
 
-      static std::shared_ptr<Sprite> addImage(std::string window, int layer, SpriteInfo* info, bool ignoreCamera);
+      static std::shared_ptr<Sprite> addImage(std::string window, int layer, std::shared_ptr<SpriteInfo> info, bool ignoreCamera);
       // worldPos is ignored for grouped sprites (only the group as a whole has a worldPos)
-      static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, SpriteGroup* groupInfo, std::vector<SpriteInfo*> group);
-      static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, SpriteGroup* groupInfo, std::vector<std::shared_ptr<SpriteInfo>> group);
+      // static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, std::shared_ptr<Info> groupInfo, std::vector<SpriteInfo*> group);
+      static std::vector<std::shared_ptr<Sprite>> addImageGroup(std::string window, int layer, Info* groupInfo, std::vector<std::shared_ptr<SpriteInfo>> group);
       static SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
 
       // JEN AI TU BESOIN

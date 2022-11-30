@@ -9,6 +9,7 @@
   #define MTR_Video
 #endif
 
+#include <SDL.h>
 #include <functional>
 
 #ifdef MTR_Audio
@@ -28,6 +29,9 @@
 
 namespace SDLA {
   int init(){
+
+    SDL_SetMainReady();
+
     if (SDL_Init(
       SDL_INIT_TIMER | //: timer subsystem
       #ifdef MTR_Video
@@ -48,7 +52,7 @@ namespace SDLA {
     }
 
     #ifdef MTR_Video
-      SDLA::Rendering();
+      // SDLA::Rendering();
     #endif
 
     #ifdef MTR_Preferences
@@ -78,7 +82,7 @@ namespace SDLA {
   int close(){
     SDL_Quit();
     // SDLA::Rendering
-    SDLA::render->~Rendering();
+    // SDLA::render->~Rendering();
     return 0;
   };
 }

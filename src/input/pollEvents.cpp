@@ -1,8 +1,9 @@
-#include <iostream>
+#include <memory>
 
 #include <SDL.h> 
 
 #include "input.h"
+#include "rendering.h"
 
 namespace Input {
 
@@ -13,17 +14,12 @@ namespace Input {
     // updateInputStates(Mouse::clicks);
     updateInputStates(KeyStatesMap::keycodeStates);
 
-    while (SDL_PollEvent(&event)) { 
+    while (SDL_PollEvent(&event)) {
+      SDLA::Rendering::pollWindowEvents(event);
       switch (event.type) { 
 
-      case SDL_WINDOWEVENT:
-
-        if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-            // logFileStderr("MESSAGE:Resizing window...\n");
-            // resizeWindow(event.window.data1, event.window.data2);
-        }
-          
-        break;
+      case SDL_WINDOWEVENT: {
+      }
       case SDL_QUIT: 
         return 1;
 

@@ -12,7 +12,8 @@ Rendering::Window::Window(
         Box windowSize,
         std::string name,
         Vec2 position,
-        SDL_WindowFlags mode
+        SDL_WindowFlags mode,
+        bool hasOwnThread
         ){
 
   for(int i = 0; i < layerCount; i++){
@@ -30,15 +31,17 @@ Rendering::Window::Window(
                             position.y, 
                             windowSize.width, windowSize.height, mode);
 
-  Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE; 
+  Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC |  SDL_RENDERER_TARGETTEXTURE; 
   context = SDL_CreateRenderer(window, -1, render_flags);
   this->name = name;
-  
+  if(hasOwnThread){
+    this->hasOwnThread = true;
+    this->renderThread = std::thread(mane, this);
+  }
+
 }
 
-  int ms = 0;
-  int fps = 0;
-  bool fpsShown;
+
 
 void Rendering::Window::display(){
   SDL_RenderClear(context);
@@ -123,19 +126,63 @@ void Rendering::Window::display(){
     }
   SDL_RenderPresent(context);
   // TODO 
-  // SDL_Delay(1); 
-  // ms = SDL_GetTicks();
-  // if(ms < 5000) {} else if (ms <= 10000) {fps++;}
-  // if(ms >= 10000 && !fpsShown){
-  //   SDLA::Rendering::TextInfo* textInfo = new SDLA::Rendering::TextInfo();
-  //   textInfo->info = new SDLA::Rendering::SpriteInfo();
-  //   textInfo->info->offset = {0,350};
-  //   textInfo->textureText = std::to_string(fps/5) ;
-  //   textInfo->fontName = "assets/Minecraft.ttf";
-  //   textInfo->size = 12;
-  //   textInfo->textColor = (SDL_Color) {255,255,255};
-  //   SDLA::Rendering::Text::loadText(currentWindow, 1, textInfo, true);
-  //   fpsShown = true;
-  // }
+  // SDL_Delay(16); 
+  ms = SDL_GetTicks();
+  if(ms < 5000) {} else if (ms <= 10000) {fps++;}
+  if(ms >= 10000 && !fpsShown){
+    SDLA::Rendering::Text::loadText(name, 1, 
+      SDLA::Rendering::TextInfo().create(
+      new SDLA::Rendering::Info(Vec2{0,350}),
+      std::to_string(fps/5),
+      "assets/Minecraft.ttf",
+      12,
+      (SDL_Color) {255,255,255}
+      ), true);
+    fpsShown = true;
+  }
 }
 
+void SDLA::Rendering::Window::pollEvents(SDL_Event event){
+  switch (event.window.event){
+    case SDL_WINDOWEVENT_RESIZED:
+      break;
+    case SDL_WINDOWEVENT_MOVED:
+      // {
+        // std::shared_ptr<SDLA::Rendering::Window> window = SDLA::Rendering::getCurrentWindow();
+        // SDL_Window* SDLWindow = window->getSDL_Window();
+      SDL_GetWindowPosition(window, &position.x, &position.y);
+      // }
+      break;
+    case SDL_WINDOWEVENT_SHOWN:
+      break;
+    case SDL_WINDOWEVENT_HIDDEN:
+      break;
+    case SDL_WINDOWEVENT_EXPOSED:
+      break;
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+      break;
+    case SDL_WINDOWEVENT_MINIMIZED:
+      break;
+    case SDL_WINDOWEVENT_MAXIMIZED:
+      break;
+    case SDL_WINDOWEVENT_RESTORED:
+      break;
+    case SDL_WINDOWEVENT_ENTER:
+      break;
+    case SDL_WINDOWEVENT_LEAVE:
+      break;
+    case SDL_WINDOWEVENT_FOCUS_GAINED:
+      Rendering::currentWindow = name;
+      break;
+    case SDL_WINDOWEVENT_FOCUS_LOST:
+      break;
+    case SDL_WINDOWEVENT_CLOSE:
+      close();
+      break;
+    case SDL_WINDOWEVENT_TAKE_FOCUS:
+      break;
+    case SDL_WINDOWEVENT_HIT_TEST:
+      break;
+  }
+
+}

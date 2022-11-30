@@ -47,11 +47,12 @@ void SDLA::Rendering::Renderable::setCrop(Bounds crop, bool rendererCall){
 }
 
 SDLA::Bounds SDLA::Rendering::Renderable::getBounds(){ 
-SDLA::Vec2 myOffset = windows[myWindow]->getBuffer()[layer]->offset + info->offset;
-std::shared_ptr<SDLA::Rendering::SuperGroup> superGroup = ownerGroup->superGroup;
-while(superGroup != nullptr) {
-  myOffset = myOffset + superGroup->offset + (ownerGroup->ignoreCamera ? (Vec2){0,0} : superGroup->worldPos);
-  superGroup = superGroup->parentGroup;
+  SDLA::Vec2 myOffset = windows[myWindow]->getBuffer()[layer]->offset + info->offset;
+  std::shared_ptr<SDLA::Rendering::SuperGroup> superGroup = ownerGroup->superGroup;
+  while(superGroup != nullptr) {
+    myOffset = myOffset + superGroup->offset + (ownerGroup->ignoreCamera ? (Vec2){0,0} : superGroup->worldPos);
+    superGroup = superGroup->parentGroup;
+  }
+  return {myOffset, {getSDLRect()->w,getSDLRect()->h}};
 }
-return {myOffset, {getSDLRect()->w,getSDLRect()->h}};}
 

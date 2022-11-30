@@ -12,9 +12,11 @@ std::string Rendering::newWindow(
       Box windowSize,
       std::string name,
       Vec2 position,
-      SDL_WindowFlags mode
+      SDL_WindowFlags mode,
+      bool hasOwnThread
       ){
-  std::shared_ptr<Window> window = std::make_shared<Window>(layerCount, windowSize, /* this->threadID,  */name, position, mode);
+  std::shared_ptr<Window> window = std::make_shared<Window>(layerCount, windowSize, name, position, mode, hasOwnThread);
+  // if(window->)
   
   windows.insert({name, window});
   if(windows.size() == 1) {
