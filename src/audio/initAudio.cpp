@@ -8,20 +8,20 @@
 #include "SDL_scancode.h"
 
 
-namespace Audio{
+namespace FK{
+  namespace ORE{
+    void init(){
+      devices();
+    }
 
-  void init(){
-    devices();
+    void devices(){
+      SDL_memset(&Device::AudioSpecWant, 0, sizeof(Device::AudioSpecWant));
+      Device::AudioSpecWant.freq = 44100;
+      Device::AudioSpecWant.format = AUDIO_S16;
+      Device::AudioSpecWant.channels = 2;
+      Device::AudioSpecWant.samples = 4096;
+
+      Device::currentId = -1;
+    }
   }
-
-  void devices(){
-    SDL_memset(&Device::AudioSpecWant, 0, sizeof(Device::AudioSpecWant));
-    Device::AudioSpecWant.freq = 44100;
-    Device::AudioSpecWant.format = AUDIO_S16;
-    Device::AudioSpecWant.channels = 2;
-    Device::AudioSpecWant.samples = 4096;
-
-    Device::currentId = -1;
-  }
-
 }

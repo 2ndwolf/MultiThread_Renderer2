@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.17)
 set(C_COMPILER_PATH  "D:/MinGW/GCC12.2_64/bin")
 set(CXX_COMPILER_PATH  "D:/MinGW/GCC12.2_64/bin")
 set(GENERATOR_NAME "MinGW Makefiles")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_EXTENSIONS OFF)
 
 # SDL2 Stuff
 set(SDL2_VERSION "2.26.0")
@@ -32,11 +33,11 @@ include_directories(MTR
 		${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/x86_64-w64-mingw32/include/SDL2
 )
 
-# file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-# file(GLOB NESTEDSOURCES ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
-# file(GLOB NESTEDSOURCES2 ${PROJECT_SOURCE_DIR}/src/*/*/*.cpp)
-# file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h)
+file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB NESTEDSOURCES ${PROJECT_SOURCE_DIR}/src/*/*.cpp)
+file(GLOB NESTEDSOURCES2 ${PROJECT_SOURCE_DIR}/src/*/*/*.cpp)
+file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
+# file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.h)
 
 
 set(SDL2_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2-${SDL2_VERSION}/cmake/)
@@ -65,9 +66,9 @@ if(NOT STATIC_BUILD)
 	file(COPY ${PROJECT_SOURCE_DIR}/dependencies/SDL2_mixer-${SDL2_MIXER_VERSION}/${sdl_p_folder}/bin/SDL2_mixer.dll DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
 	file(COPY ${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/${sdl_p_folder}/bin/SDL2_ttf.dll DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
 
-	add_library(MTR ${SOURCES})
+	add_library(MTR ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
 	target_link_libraries(MTR SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf)
 else()
-	add_library(MTR STATIC ${SOURCES})
+	add_library(MTR STATIC ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS})
 	target_link_libraries(MTR SDL2::SDL2-static SDL2_image::SDL2_image-static SDL2_mixer::SDL2_mixer-static SDL2_ttf::SDL2_ttf-static)
 endif()

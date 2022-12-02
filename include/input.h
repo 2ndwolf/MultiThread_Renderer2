@@ -10,57 +10,57 @@
 #include "SDL_scancode.h"
 
 #include "primitives.h"
+#include "fkenum.h"
 
 
-namespace Input{
-  enum KeyStates {
-    UP,
-    INACTIVE,
-    DOWN,
-    HELD
-  };
+namespace FK{
+  // class Mouse;
 
-  inline std::vector<std::string> scancodeStrVec((int)SDL_NUM_SCANCODES);
+  namespace AT{
+    // bool keyPressed(std::string key);
+    // bool keyHeld(std::string key);
+    // bool keyUp(std::string key);
+    // bool keyDown(std::string key);
+  }
 
-  void initKeyBinds(std::map<std::string, std::vector<SDL_Scancode>> &iniDefinedKeys);
-  void loadScancodes();
-  std::vector<SDL_Scancode> findScancode(std::vector<std::string> keycodeAsStr);
+  namespace ORE{
 
-  // void updateMouse(entt::registry &registry);
+    inline std::vector<std::string> scancodeStrVec((int)SDL_NUM_SCANCODES);
 
-  int pollEvents();
-  void updateInputStates(std::map<SDL_Scancode, KeyStates> &inputStates);
-  void MusicFun();
+    void initKeyBinds(std::map<std::string, std::vector<SDL_Scancode>> &iniDefinedKeys);
+    void loadScancodes();
+    std::vector<SDL_Scancode> findScancode(std::vector<std::string> keycodeAsStr);
 
-  bool keyPressed(std::string key);
-  bool keyHeld(std::string key);
-  bool keyUp(std::string key);
-  bool keyDown(std::string key);
+    // void updateMouse(entt::registry &registry);
 
-  class KeyStatesMap{
-    public:
-    inline static std::map<SDL_Scancode, KeyStates> keycodeStates;
-  };
+    int pollEvents();
+    void updateInputStates(std::map<SDL_Scancode, ENUM::KeyStates> &inputStates);
+    // void MusicFun();
 
-  class Keybinds{
-    public:
-    inline static std::map<std::string, std::vector<SDL_Scancode>> keys;
-  };
 
-  enum MouseMode{
-    DEFAULT
-  };
+    class KeyStatesMap{
+      public:
+      inline static std::map<SDL_Scancode, ENUM::KeyStates> keycodeStates;
+    };
+
+    class Keybinds{
+      public:
+      inline static std::map<std::string, std::vector<SDL_Scancode>> keys;
+    };
+
+
+  }
+
+
 
   class Mouse{
     public:
-    Mouse(){};
-    inline static SDLA::ScreenPos mousePos;
-    inline static std::map<int, KeyStates> clicks;
-    inline static MouseMode mouseMode = MouseMode::DEFAULT;
+    // Mouse(){};
+    inline static Vec2 position;
+    inline static std::map<int, ENUM::KeyStates> clicks;
+    inline static ENUM::MouseMode mouseMode = ENUM::MouseMode::DEFAULT;
   };
 
-  // inline static Mouse::mouseMode = DEFAULT;
-  inline static Mouse mouse = Mouse();
 }
 
 #endif

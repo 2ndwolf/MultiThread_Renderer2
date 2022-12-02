@@ -1,35 +1,38 @@
-#ifndef _SDLA_identifier_h
-#define _SDLA_identifier_h
+#ifndef _FK_identifier_h
+#define _FK_identifier_h
 
 #include "primitives.h"
 
-namespace SDLA{
+namespace FK{
 
-  class Identifier{
-    private:
-      inline static SDLA::ID currtID = -1;
-      inline static SDLA::ID txtID = -1;
-      inline static SDLA::ID winID = -1;
-    public:
-      static SDLA::ID newID(){
-        currtID++;
-        return currtID;
-      }
-      static SDLA::ID newtxtID(){
-        txtID++;
-        return txtID;
-      }
-      static SDLA::ID newWinID(){
-        winID++;
-        return winID;
-      }
-      static SDLA::ID noID(){
-        return -1;
-      }
-      // static void initIDs(){
-      //   SDLA::ID currtID = -1;
-      // }
-  };
+  namespace ORE{
+
+    class Identifier{
+      private:
+        inline static FK::ID currtID = -1;
+        inline static FK::ID txtID = -1;
+        inline static FK::ID winID = -1;
+      public:
+        static FK::ID newID(){
+          currtID++;
+          return currtID;
+        }
+        static FK::ID newtxtID(){
+          txtID++;
+          return txtID;
+        }
+        static FK::ID newWinID(){
+          winID++;
+          return winID;
+        }
+        static FK::ID noID(){
+          return -1;
+        }
+        // static void initIDs(){
+        //   FK::ID currtID = -1;
+        // }
+    };
+  }
 
 }
 

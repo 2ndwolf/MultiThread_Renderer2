@@ -10,48 +10,52 @@
 #include "audio.h"
 
 
-namespace Audio{
+namespace FK{
 
-  void play(std::string soundName){
-    if(LoadedSounds.find((std::string)soundName) == LoadedSounds.end()){
-      std::cout << "Loading new sound..." << std::endl;
-      Sound sample = Sound();
-      if (SDL_LoadWAV(soundName.c_str(), &Device::AudioSpecWant, &sample.wav_buffer, &sample.wav_length) == NULL) {
-        fprintf(stderr, "Could not open %s : %s\n", soundName, SDL_GetError());
-        return;
+  namespace AT{
+    void play(std::string soundName){
+      if(ORE::LoadedSounds.find((std::string)soundName) == ORE::LoadedSounds.end()){
+        std::cout << "Loading new sound..." << std::endl;
+        ORE::Sound sample = ORE::Sound();
+        if (SDL_LoadWAV(soundName.c_str(), &ORE::Device::AudioSpecWant, &sample.wav_buffer, &sample.wav_length) == NULL) {
+          fprintf(stderr, "Could not open %s : %s\n", soundName, SDL_GetError());
+          return;
+        } else {
+          ORE::LoadedSounds[soundName] = sample;
+        }
+      }
+
+      if(ORE::Device::currentId == -1){
+        ORE::Device::deviceId = SDL_OpenAudioDevice(NULL, 0, &ORE::Device::AudioSpecWant, NULL, 0);
+      }
+
+      if(ORE::Device::deviceId != 0 && ORE::Device::currentId == -1){
+        ORE::Device::deviceIds.push_back(ORE::Device::deviceId);
       } else {
-        LoadedSounds[soundName] = sample;
+        ORE::Device::currentId++;
+        ORE::Device::deviceId = ORE::Device::deviceIds[ORE::Device::currentId%ORE::Device::deviceIds.size()];
       }
-    }
 
-    if(Device::currentId == -1){
-      Device::deviceId = SDL_OpenAudioDevice(NULL, 0, &Device::AudioSpecWant, NULL, 0);
-    }
-
-    if(Device::deviceId != 0 && Device::currentId == -1){
-      Device::deviceIds.push_back(Device::deviceId);
-    } else {
-      Device::currentId++;
-      Device::deviceId = Device::deviceIds[Device::currentId%Device::deviceIds.size()];
-    }
-
-    if(SDL_QueueAudio(Device::deviceId, LoadedSounds[soundName].wav_buffer, LoadedSounds[soundName].wav_length) == 0){
-      if(Device::currentId == -1){
-        SDL_PauseAudioDevice(Device::deviceId, 0);
+      if(SDL_QueueAudio(ORE::Device::deviceId, ORE::LoadedSounds[soundName].wav_buffer, ORE::LoadedSounds[soundName].wav_length) == 0){
+        if(ORE::Device::currentId == -1){
+          SDL_PauseAudioDevice(ORE::Device::deviceId, 0);
+        }
       }
-    }
-    // SDL_Delay(500);
-    // SDL_CloseAudioDevice(deviceId);
+      // SDL_Delay(500);
+      // SDL_CloseAudioDevice(deviceId);
 
-    // SDL_FreeWAV(LoadedSounds[soundName].wav_buffer);
+      // SDL_FreeWAV(ORE::LoadedSounds[soundName].wav_buffer);
+    }
   }
 
-  void closeAllAudioDevices(){
-    Device::currentId = -1;
-    for(int i = 0; i < Device::deviceIds.size(); i++){
-      SDL_CloseAudioDevice(Device::deviceIds[i]);
-      std::cout << "Closing devices!!!!!" + i << std::endl;
+  namespace ORE{
+    void closeAllAudioDevices(){
+      ORE::Device::currentId = -1;
+      for(int i = 0; i < ORE::Device::deviceIds.size(); i++){
+        SDL_CloseAudioDevice(ORE::Device::deviceIds[i]);
+        std::cout << "Closing devices!!!!!" + i << std::endl;
+      }
+      ORE::Device::deviceIds.resize(0);
     }
-    Device::deviceIds.resize(0);
   }
 }

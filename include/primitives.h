@@ -1,14 +1,15 @@
 #ifndef _SDLA_primitives_h
 #define _SDLA_primitives_h
 
-namespace SDLA {
+namespace FK {
 
   typedef int ID;
 
-  typedef struct idInf{
-    ID id;
-    int layer;
-  } idInf;
+}
+  // typedef struct idInf{
+  //   ID id;
+  //   int layer;
+  // } idInf;
 
   typedef struct Vec2{
     int x = 0, y = 0;
@@ -50,10 +51,10 @@ namespace SDLA {
 
   } Bounds;
 
-  struct Position{
-    Vec2 worldPos;
-    Vec2 offset;
-  };
+  // struct Position{
+  //   Vec2 worldPos;
+  //   Vec2 offset;
+  // };
 
-}
+// }
 #endif

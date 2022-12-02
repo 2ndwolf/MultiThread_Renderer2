@@ -22,12 +22,16 @@
   #include "preferences.h"
 #endif
 #ifdef MTR_Video
-  #include "rendering.h"
+  #include "fkore.h"
+  #include "information.h"
+  #include "renderable.h"
+  #include "window.h"
 #endif
 
+#include "AT.h"
 #include "primitives.h"
 
-namespace SDLA {
+namespace FK::INIT {
   int init(){
 
     SDL_SetMainReady();
@@ -56,16 +60,16 @@ namespace SDLA {
     #endif
 
     #ifdef MTR_Preferences
-      Preferences::parseIni("assets/uPref.ini");
+      FK::ORE::parseIni("assets/uPref.ini");
       // 2
       #ifdef MTR_Input
-        Input::initKeyBinds(Preferences::uPreferences::uPrefs.keys);
+        FK::ORE::initKeyBinds(FK::ORE::uPreferences::uPrefs.keys);
         // 3
       #endif
     #endif
 
     #ifdef MTR_Audio
-      Audio::init();
+      FK::ORE::init();
       // 4
     #endif
 
@@ -87,7 +91,7 @@ namespace SDLA {
   };
 }
 
-std::function<int()> MTR_Init  = SDLA::init;
-std::function<int()> MTR_Close = SDLA::close;
+std::function<int()> FK_Init  = FK::INIT::init;
+std::function<int()> FK_Close = FK::INIT::close;
 
 #endif
