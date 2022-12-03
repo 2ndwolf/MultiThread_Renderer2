@@ -31,36 +31,5 @@ namespace FK{
     }
 
 
-    void Sprite::changeSurface(std::string fileN){
-      if(FKORE::surfaces[information->fileName].useCount != -1){
-        FKORE::surfaces[information->fileName].useCount -= 1;
-        if(FKORE::surfaces[information->fileName].useCount == 0) FKORE::surfaces.erase(information->fileName);
-      }
-      
-      loadSurface(fileN);
-      information->fileName = fileN;
-      texQueued = true;
-    }
-
-    // TODO check if image exists first
-    FKORE::SDLSurface* Sprite::loadSurface(std::string fileName, bool keepImgInMemory){
-      if(!FKORE::surfaces.count(fileName)){
-        FKORE::SDLSurface newSur;
-        newSur.sur = IMG_Load(fileName.c_str());
-        if(newSur.sur == NULL) newSur.sur = IMG_Load(placeHolder.c_str());
-        newSur.fileName = fileName;
-        if(keepImgInMemory) newSur.useCount = -1;
-        else newSur.useCount = 1;
-        FKORE::surfaces.insert({fileName, newSur});
-
-      } else if (keepImgInMemory){
-        FKORE::surfaces[fileName].useCount = -1;
-
-      } else if (FKORE::surfaces[fileName].useCount != -1){
-        FKORE::surfaces[fileName].useCount += 1;
-      }
-
-      return &FKORE::surfaces[fileName];
-    }
   }
 }

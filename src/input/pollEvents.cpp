@@ -17,7 +17,7 @@ namespace FK {
       updateInputStates(FK::ORE::KeyStatesMap::keycodeStates);
 
       while (SDL_PollEvent(&event)) {
-        FK::Window::pollWindowEvents(event);
+        FK::Window::updateEvents(event);
         switch (event.type) { 
 
         case SDL_WINDOWEVENT: {

@@ -36,32 +36,15 @@ namespace FK{
       protected:
       inline static std::map<std::string, std::shared_ptr<Window>> windows = std::map<std::string, std::shared_ptr<Window>>();
       inline static std::string currentWindow;
-
-      inline Window(){
-        std::thread(multiMane, this).detach();
-      };
-      Window(
-        int layerCount,
-        Box windowSize,
-        std::string name,
-        bool hasOwnThread = false,
-        Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
-        SDL_WindowFlags mode = (SDL_WindowFlags) 0
-        );
-
-      private:
-      std::thread renderThread;
-      // inline static std::thread multiThread;
-      // inline static Window* threadWindow;
-
-      // MultiWindow Thread
-      // std::thread multiWindowThread;
       inline static bool multiInitialized = false;
+      // inline Window(){};
+
+      Vec2 position;
 
       static void openMulti(){
         if(!multiInitialized) {
           multiInitialized = true;
-          Window();
+          std::thread(multiMane).detach();
         }
       }
 
@@ -69,8 +52,20 @@ namespace FK{
         multiInitialized = false;
       }
 
-      void multiMane(){
+      struct SDLEvent{SDL_Event event; int lastPoll;};
+      inline static SDLEvent events;
+      void pollEvents();
+
+      private:
+      // inline static std::thread multiThread;
+      // inline static Window* threadWindow;
+
+      // MultiWindow Thread
+      // std::thread multiWindowThread;
+      inline static void multiMane(){
         std::map<std::string, std::shared_ptr<Window>>::iterator it;
+        int lastLoopTime = 0;
+        int lastPollTime = 0;
         // bool breakOutOfWhile = false;
         while (multiInitialized) {
           if(windows.size() != 0) {
@@ -87,16 +82,31 @@ namespace FK{
                 continue;
 
               } else if (it->second->getHasOwnThread()) otherThread++;
-              else it->second->display();
+              else {
+                if(lastLoopTime < events.lastPoll || lastPollTime < events.lastPoll){
+                  lastPollTime = events.lastPoll;
+                  it->second->pollEvents();
+                }
+                it->second->display();
+              }
               it++;
             }
             if(otherThread == windows.size()) closeMulti();
+            lastLoopTime = events.lastPoll;
           }
         }
-      }
+      };
 
-      void mane(){
-        while(!pendingErase) windows[name]->display();
+
+      inline void mane(){
+        int lastEventTime;
+        while(!pendingErase) {
+          if(events.lastPoll != lastEventTime){
+            lastEventTime = events.lastPoll;
+            pollEvents();
+          }
+          display();
+        }
         windows[name] = nullptr;
       }
 
@@ -147,7 +157,6 @@ namespace FK{
       std::mutex mutex;
  
       Vec2 camPos = {0,0};
-      Vec2 position;
 
       int clampLayerIndex(int layer){
         return std::max(std::min(layer,getLayerCount()-1),0);
@@ -159,7 +168,6 @@ namespace FK{
 
       const int getBufferSize(){return writeBuffer.size();};
 
-      // Window();
       static std::string newWindow(
         int layerCount,
         Box windowSize,
@@ -168,6 +176,14 @@ namespace FK{
         Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
         SDL_WindowFlags mode = (SDL_WindowFlags) 0
       );
+      Window(
+        int layerCount,
+        Box windowSize,
+        std::string name,
+        bool hasOwnThread = false,
+        Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
+        SDL_WindowFlags mode = (SDL_WindowFlags) 0
+        );
 
 
 
@@ -177,13 +193,13 @@ namespace FK{
       void offsetLayer(int layer, Vec2 offset){if(layerInBounds(layer)) writeBuffer[layer].offset = offset;};
 
       
-      
+      std::vector<Layer> getReadBuffer(){return readBuffer;};
       std::vector<Layer> getBuffer(){return writeBuffer;};
       const bool getHasOwnThread() {return hasOwnThread;};
-      // SDL_Window* getSDL_Window(){return window;};
 
-      int getLayerCount(){return writeBuffer.size();};
-      Layer* getLayer(int layer){return &writeBuffer[clampLayerIndex(layer)];};
+      // Getters
+      int getLayerCount(){return readBuffer.size();};
+      Layer* getLayer(int layer){return &readBuffer[clampLayerIndex(layer)];};
 
       static const std::string getCurrentWindowName(){return currentWindow;};
       static std::shared_ptr<FK::Window> getCurrentWindow(){return windows[currentWindow];};
@@ -192,14 +208,15 @@ namespace FK{
 
       std::string getName(){return name;};
 
-      void pollEvents(SDL_Event event);
-      static void pollWindowEvents(SDL_Event event){
-        std::map<std::string, std::shared_ptr<Window>>::iterator it;
-        if(windows.size() != 0) {/* windows[currentWindow]->display(); */
-          for(it = windows.begin(); it != windows.end(); it++){
-            it->second->pollEvents(event);
-          }
-        }
+      static void updateEvents(SDL_Event event){
+        events.event = event;
+        events.lastPoll = SDL_GetTicks();
+        // std::map<std::string, std::shared_ptr<Window>>::iterator it;
+        // if(windows.size() != 0) {/* windows[currentWindow]->display(); */
+        //   for(it = windows.begin(); it != windows.end(); it++){
+        //     it->second->pollEvents(event);
+        //   }
+        // }
       }
 
       std::atomic<bool> pendingErase = false; 
@@ -209,6 +226,13 @@ namespace FK{
 
     };
 
+    // class MultiWindow : private Window {
+    //   public:
+    //   inline MultiWindow(){
+    //   };
+
+    //   private:
+    // }
 }
 
 #endif

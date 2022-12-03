@@ -17,12 +17,19 @@ namespace FK{
   namespace ORE{
     inline std::string placeHolderImage = "assets/gen_specialchest.png";
     class Renderable {
-      public:
-
-      bool hidden = false;
-      bool pendingErase = false;
+      protected:
       bool getAngleFromGroup = true;
       std::shared_ptr<FK::AT::SpriteInformation> information;
+      
+
+      public:
+
+      void changeSurface(std::string fileName);
+      void setRotationCenter(Vec2 center);
+
+      inline FK::AT::SpriteInformation& getInformation(){return *information;};
+      // bool hidden = false;
+      std::atomic<bool> pendingErase = false;
       std::string myWindow;
       std::shared_ptr<FK::AT::SpriteGroup> ownerGroup;
 
@@ -67,6 +74,10 @@ namespace FK{
       // std::atomic<bool> ignoreCamera = true;
       int layer;
       inline static std::string placeHolder = placeHolderImage;
+
+
+      private:
+      static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
 
       private:
       SDL_Texture* texture;

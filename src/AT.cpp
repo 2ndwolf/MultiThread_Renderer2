@@ -10,7 +10,7 @@
 namespace FK{
   namespace AT{
 
-    std::shared_ptr<Sprite> addSprite(std::string window, int layer, std::shared_ptr<SpriteInformation> info, bool ignoreCamera){
+    std::shared_ptr<SpriteGroup> addSprite(std::string window, int layer, std::shared_ptr<SpriteInformation> info, bool ignoreCamera){
       std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
       std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera, window, sG);
       // s->ownerGroup = sG;
@@ -26,7 +26,7 @@ namespace FK{
         // textInfo->size = 12;
         // textInfo->textColor = (SDL_Color) {255,255,255};
         // SDLA::Rendering::Text::loadText(window, 1, textInfo, true);
-      return s;
+      return sG;
     }
 
     // DO NOT Add an overload for std::shared_ptr<SpriteGroup> where it adds the images to the group instead of creating a new group
@@ -48,7 +48,7 @@ namespace FK{
 
     // DO NOT Add an overload for std::shared_ptr<SpriteGroup> where it adds the images to the group instead of creating a new group
     // It won't be possible to add sprites to a spriteGroup -> segmentation fault possibility
-    std::vector<std::shared_ptr<Sprite>> addSpriteGroup(std::string window, int layer, std::shared_ptr<Information> groupInfo, std::vector<std::shared_ptr<SpriteInformation>> group){
+     std::shared_ptr<SpriteGroup> addSpriteGroup(std::string window, int layer, std::shared_ptr<Information> groupInfo, std::vector<std::shared_ptr<SpriteInformation>> group){
 
       std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>(groupInfo);
       // delete groupInfo;
@@ -61,7 +61,7 @@ namespace FK{
       }
 
       Window::getWindow(window)->getLayer(layer)->groups.push_back(sG);
-      return sV;
+      return sG;
     }
 
     std::shared_ptr<Text> loadText(std::string window, int layer, std::shared_ptr<TextInformation> txtInfo, bool ignoreCamera){

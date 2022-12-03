@@ -76,32 +76,36 @@ namespace FK {
     class SuperGroup : public Information {
       public:
       inline SuperGroup();
-      inline SuperGroup(std::shared_ptr<Information> information);
+      inline SuperGroup(std::shared_ptr<Information> information, bool isRotationCenter = false);
       // SuperGroup(Information information) : Information(information){};
 
       std::shared_ptr<SuperGroup> parentGroup = nullptr;
       // std::shared_ptr<SuperGroup> childGroup = nullptr;
-
-      Vec2 worldPos = {0,0};
+      bool isRotationCenter = false;
     };
     SuperGroup::SuperGroup(){};
-    SuperGroup::SuperGroup(std::shared_ptr<Information> information){
+    SuperGroup::SuperGroup(std::shared_ptr<Information> information, bool isRotationCenter){
       information->fillMe(this);
+      this->isRotationCenter = isRotationCenter;
     };
 
 
-    class SpriteGroup : public Information {
+    class SpriteGroup : public SuperGroup {
       public:
       inline SpriteGroup();
-      inline SpriteGroup(std::shared_ptr<Information> information);
+      inline SpriteGroup(std::shared_ptr<Information> information, bool isRotationCenter = false);
       // SpriteGroup(Information information) : Information(information){};
 
       std::shared_ptr<SuperGroup> superGroup = nullptr;
       std::vector<std::shared_ptr<ORE::Renderable>> sprites;
+
+      Vec2 worldPos = {0,0};
+
     };
     SpriteGroup::SpriteGroup(){};
-    SpriteGroup::SpriteGroup(std::shared_ptr<Information> information){
+    SpriteGroup::SpriteGroup(std::shared_ptr<Information> information, bool isRotationCenter) : SuperGroup(std::make_shared<Information>(), isRotationCenter){
       information->fillMe(this);
+      // this->isRotationCenter = isRotationCenter;
     };
 
 
@@ -115,26 +119,25 @@ namespace FK {
       inline SpriteInformation();
 
       inline SpriteInformation(std::shared_ptr<Information> information,
-        Bounds area = {0,0},
-        std::string fileName = "assets/gen_specialchest.png",
-        ENUM::Flip flip = ENUM::Flip::NONE
-      );
+        Bounds pArea = {0,0},
+        std::string pFileName = "assets/gen_specialchest.png",
+        ENUM::Flip pFlip = ENUM::Flip::NONE
+      ) : area(pArea), fileName(pFileName), flip(pFlip){
+        information->fillMe(this);
+      };
 
       std::shared_ptr<SpriteInformation> share(){
         return std::shared_ptr<SpriteInformation>(this);
       };
     };
     SpriteInformation::SpriteInformation(){};
-    SpriteInformation::SpriteInformation(std::shared_ptr<Information> information,
-        Bounds area,
-        std::string fileName,
-        ENUM::Flip flip
-      ){
-        information->fillMe(this);
-        this->area = area;
-        this->fileName = fileName;
-        this->flip = flip;
-      };
+    // SpriteInformation::SpriteInformation(std::shared_ptr<Information> information,
+    //     Bounds area,
+    //     std::string fileName,
+    //     ENUM::Flip flip
+    //   ){
+    //     information->fillMe(this);
+    //   };
 
 
     class TextInformation : public Information {
@@ -164,24 +167,24 @@ namespace FK {
       int size,
       SDL_Color textColor
     ){
-      information->fillMe(this);
-      this->text = text;
-      this->fontName = fontName;
-      this->size = size;
+      information->fillMe(this);;;
+      this->text =           text;
+      this->fontName =   fontName;
+      this->size =           size;
       this->textColor = textColor;
     };
-    TextInformation::TextInformation(Information information,
-      std::string text,
-      std::string fontName,
-      int size,
-      SDL_Color textColor
-    ){
-      information.fillMe(this);
-      this->text = text;
-      this->fontName = fontName;
-      this->size = size;
-      this->textColor = textColor;
-    };
+    // TextInformation::TextInformation(Information information,
+    //   std::string text,
+    //   std::string fontName,
+    //   int size,
+    //   SDL_Color textColor
+    // ){
+    //   information.fillMe(this);
+    //   this->text = text;
+    //   this->fontName = fontName;
+    //   this->size = size;
+    //   this->textColor = textColor;
+    // };
   }
 }
 

@@ -46,6 +46,7 @@ namespace FK{
     Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC |  SDL_RENDERER_TARGETTEXTURE; 
     context = SDL_CreateRenderer(window, -1, render_flags);
     this->name = name;
+    this->hasOwnThread = hasOwnThread;
 
     if(windows.size() == 1) {
       currentWindow = name;
@@ -63,19 +64,16 @@ namespace FK{
     Vec2 position,
     SDL_WindowFlags mode
   ){
-    Window* win = new Window(
+    windows.insert({name, std::make_shared<Window>(
      layerCount,
      windowSize,
      name,
      hasOwnThread,
      position,
-     mode
-    );
-    windows.insert({name, std::shared_ptr<Window>(win)});
-    // delete win;
+     mode)});
+
     if(hasOwnThread){
-      win->hasOwnThread = true;
-      win->renderThread = std::thread(mane, win);
+      std::thread(mane, windows[name]).detach();
     } else openMulti();
 
     return name;
@@ -92,24 +90,33 @@ namespace FK{
 
         readBuffer[i].groups.erase(
           std::remove_if(std::begin(readBuffer[i].groups), std::end(readBuffer[i].groups),
-            [&] (std::shared_ptr<FK::AT::SpriteGroup> sG) -> bool {
-              if (sG->pendingErase) return true;
-              std::shared_ptr<FK::AT::SuperGroup> superGroup = sG->superGroup;
+            [&, this] (std::shared_ptr<FK::AT::SpriteGroup> sprG) -> bool {
+              
+              mutex.lock();
+                FK::AT::SpriteGroup& sG = *sprG;
+              mutex.unlock();
+
+              if (sG.pendingErase) return true;
+              std::shared_ptr<FK::AT::SuperGroup> superGroup = sG.superGroup;
               while(superGroup != nullptr){
                 if(superGroup->pendingErase) return true;
                 
                 superGroup = superGroup->parentGroup;
               }
 
-              sG->sprites.erase(
-                std::remove_if(std::begin(sG->sprites), std::end(sG->sprites),
+              sG.sprites.erase(
+                std::remove_if(std::begin(sG.sprites), std::end(sG.sprites),
                   [&] (std::shared_ptr<FK::ORE::Renderable> s) -> bool {
                   if (s->pendingErase) {
                     return true;
                   }
+                  mutex.lock();
+                  FK::AT::SpriteInformation& sInformation = s->getInformation();
+                  SDL_Rect sdlRect = *s->getSDLRect();
+                  mutex.unlock();
                   if(s->texQueued){
-                    s->setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[s->information->fileName].sur));
-                    Bounds area = s->information->area;
+                    s->setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[sInformation.fileName].sur));
+                    Bounds area = sInformation.area;
                     if(area.box.width == 0 || area.box.height == 0){
                       SDL_QueryTexture(s->getTexture(), NULL, NULL, &area.box.width, &area.box.height);
                       s->setCrop(area, true);
@@ -117,42 +124,42 @@ namespace FK{
                     s->texQueued = false;
                   }
 
-                  superGroup = sG->superGroup;
+                  superGroup = sG.superGroup;
                   while(superGroup != nullptr){
                     if(superGroup->hidden) return false;
                     superGroup = superGroup->parentGroup;
                   }
 
                   if(!(readBuffer[i].hidden | 
-                  sG->hidden  |
-                  s->information->hidden )){
-                    std::shared_ptr<FK::AT::SpriteInformation> sInformation = s->information;
-                    // std::shared_ptr<SpriteInformation> sGInformation = sG->information;
+                  sG.hidden  |
+                  sInformation.hidden )){
+                    
+                    // std::shared_ptr<SpriteInformation> sGInformation = sG.information;
 
                     // mutex.lock();
-                    SDL_Rect sdlRect = *s->getSDLRect();
 
-                    if(s->getIgnoreCamera() || sG->superGroup == nullptr){
-                      sdlRect.x = readBuffer[i].offset.x + sInformation->offset.x + sG->offset.x;
-                      sdlRect.y = readBuffer[i].offset.y + sInformation->offset.y + sG->offset.y;
+                    if(s->getIgnoreCamera() || sG.superGroup == nullptr){
+                      sdlRect.x = readBuffer[i].offset.x + sInformation.offset.x + sG.offset.x;
+                      sdlRect.y = readBuffer[i].offset.y + sInformation.offset.y + sG.offset.y;
                     } else {
                       Vec2 superMov = {0,0};
-                      superGroup = sG->superGroup;
+                      superGroup = sG.superGroup;
                       while(superGroup != nullptr){
-                        superMov = superMov + superGroup->offset + superGroup->worldPos;
+                        superMov = superMov + superGroup->offset + sG.worldPos;
                         superGroup = superGroup->parentGroup;
                       }
-                      sdlRect.x += superMov.x - camPos.x + readBuffer[i].offset.x + sInformation->offset.x + sG->offset.x;
-                      sdlRect.y += superMov.y - camPos.y + readBuffer[i].offset.y + sInformation->offset.y + sG->offset.y;
+                      sdlRect.x += superMov.x - camPos.x + readBuffer[i].offset.x + sInformation.offset.x + sG.offset.x;
+                      sdlRect.y += superMov.y - camPos.y + readBuffer[i].offset.y + sInformation.offset.y + sG.offset.y;
 
                     }
-                    SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, s->getAngleFromGroup ? sG->angle : sInformation->angle, (SDL_Point*) sInformation->rotCenter, (SDL_RendererFlip) sInformation->flip);
+                    // Calculer l'angle du renderable et la position par rapport aux rotations préséquentes
+                    SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, sG.angle, (SDL_Point*) sInformation.rotCenter, (SDL_RendererFlip) sInformation.flip);
                     // mutex.unlock();
                   }
                   return false;
                 }
                 ),
-                std::end(sG->sprites)
+                std::end(sG.sprites)
               );
               // if(sG->superGroup!=nullptr) sG->superGroup->childFramesDrawn = true;
               return false;
@@ -181,8 +188,8 @@ namespace FK{
     }
   }
 
-  void Window::pollEvents(SDL_Event event){
-    switch (event.window.event){
+  void Window::pollEvents(){
+    switch (events.event.window.event){
       case SDL_WINDOWEVENT_RESIZED:
         break;
       case SDL_WINDOWEVENT_MOVED:
@@ -223,6 +230,7 @@ namespace FK{
       case SDL_WINDOWEVENT_HIT_TEST:
         break;
     }
+
   }
 
 }
