@@ -1,6 +1,6 @@
 #ifndef _FK_WINDOW_h
 #define _FK_WINDOW_h
-
+/*
 #include <memory>
 #include <string>
 #include <mutex>
@@ -9,14 +9,14 @@
 
 #include <SDL.h>
 
-#include "information.h"
-#include "primitives.h"
+// #include "information.h"
+#include "TSRPrimitives.h"
 
 namespace FK{
   namespace AT{
     // static std::string newWindow(
     //     int layerCount,
-    //     Box windowSize,
+    //     BoxPTR windowSize,
     //     std::string name = "Abstraction",
     //     Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
     //     SDL_WindowFlags mode = SDL_WINDOW_RESIZABLE,
@@ -155,6 +155,9 @@ namespace FK{
 
       public:
       std::mutex mutex;
+      std::mutex spriteMutex;
+      std::mutex groupMutex;
+      std::mutex windowMutex;
  
       Vec2 camPos = {0,0};
 
@@ -212,7 +215,7 @@ namespace FK{
         events.event = event;
         events.lastPoll = SDL_GetTicks();
         // std::map<std::string, std::shared_ptr<Window>>::iterator it;
-        // if(windows.size() != 0) {/* windows[currentWindow]->display(); */
+        // if(windows.size() != 0) {/* windows[currentWindow]->display(); ///////////////////////////////////////////////////////////////////////////
         //   for(it = windows.begin(); it != windows.end(); it++){
         //     it->second->pollEvents(event);
         //   }
@@ -234,5 +237,5 @@ namespace FK{
     //   private:
     // }
 }
-
+*/
 #endif

@@ -11,8 +11,8 @@ namespace FK{
   namespace AT{
 
     std::shared_ptr<SpriteGroup> addSprite(std::string window, int layer, std::shared_ptr<SpriteInformation> info, bool ignoreCamera){
-      std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>();
-      std::shared_ptr<Sprite> s = std::make_shared<Sprite>(info, layer, ignoreCamera, window, sG);
+      std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>(std::make_shared<FK::AT::Information>(window));
+      std::shared_ptr<Sprite>       s = std::make_shared<Sprite     >(info, layer, ignoreCamera, window, sG);
       // s->ownerGroup = sG;
       sG->sprites.push_back(s);
       sG->ignoreCamera = ignoreCamera;
@@ -52,11 +52,14 @@ namespace FK{
 
       std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>(groupInfo);
       // delete groupInfo;
-      sG->sprites = {};
+      // sG->sprites = {};
       std::vector<std::shared_ptr<Sprite>> sV;
       for(int i = 0; i < group.size(); i++){
         std::shared_ptr<Sprite> s = std::make_shared<Sprite>(group[i], layer, sG->ignoreCamera, window, sG);
         sV.push_back(s);
+        // SDL_Rect rect = s->getSDLRect();
+        // std::shared_ptr<SpriteInformation> sprInfo = s->information;
+        // sG->bounds = sG->bounds + sprInfo->bounds;
         sG->sprites.push_back(s);
       }
 
@@ -64,19 +67,19 @@ namespace FK{
       return sG;
     }
 
-    std::shared_ptr<Text> loadText(std::string window, int layer, std::shared_ptr<TextInformation> txtInfo, bool ignoreCamera){
+    std::shared_ptr<SpriteGroup> loadText(std::string window, int layer, std::shared_ptr<TextInformation> txtInfo, bool ignoreCamera){
 
-      std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>((std::make_shared<Information>()));
+      std::shared_ptr<SpriteGroup> sG = std::make_shared<SpriteGroup>(std::make_shared<Information>(window));
       std::shared_ptr<Text> txt = std::make_shared<Text>(txtInfo, layer, ignoreCamera, window, sG);
       // txt->ownerGroup = sG;
-      sG->sprites = {};
+      // sG->sprites = {};
       sG->sprites.push_back(txt);
       sG->ignoreCamera = ignoreCamera;
       // sG->info = std::make_shared<SpriteInfo>();
       Window::getWindow(window)->mutex.lock();
       Window::getWindow(window)->getLayer(layer)->groups.push_back(sG);
       Window::getWindow(window)->mutex.unlock();
-      return txt;
+      return sG;
       //Get rid of preexisting texture
       // free();
 

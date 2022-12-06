@@ -9,7 +9,7 @@
 
 #include "SDL_scancode.h"
 
-#include "primitives.h"
+#include "TSRPrimitives.h"
 #include "fkenum.h"
 
 

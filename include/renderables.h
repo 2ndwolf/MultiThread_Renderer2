@@ -7,7 +7,7 @@
 
 #include <SDL.h>
 
-// #include "primitives.h"
+// #include "TSRPrimitives.h"
 // #include "fkore.h"
 #include "renderable.h"
 #include "information.h"
@@ -29,10 +29,10 @@ namespace FK{
       void changeSurface(std::string fileName);
 
       private:
-      static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
+      // static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
 
     };
-
+ 
 
 
     class Text : public ORE::Renderable{

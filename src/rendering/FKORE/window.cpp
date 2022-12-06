@@ -8,15 +8,34 @@
 
 // #include "rendering.h"
 #include "identifier.h"
-#include "primitives.h"
-#include "renderable.h"
-#include "renderables.h"
+#include "TSRPrimitives.h"
 #include "fkore.h"
 #include "window.h"
 #include "information.h"
+#include "renderable.h"
+#include "renderables.h"
 #include "AT.h"
 
 namespace FK{
+
+    void Window::mane(){
+      // int lastEventTime;
+      std::shared_ptr<FK::AT::SpriteGroup> sG = std::make_shared<FK::AT::SpriteGroup>(std::make_shared<FK::AT::Information>(name));
+      ORE::Renderable rend = ORE::Renderable(
+        std::make_shared<FK::AT::SpriteInformation>(std::make_shared<FK::AT::Information>(name)),
+        0, "Abstraction", sG
+      );
+      // sG->sprites.push_back(rend);
+      // windows[name]->getLayer(layer)->groups.push_back(
+      while(!pendingErase) {
+        // if(events.lastPoll != lastEventTime){
+        //   lastEventTime = events.lastPoll;
+        //   pollEvents();
+        // }
+        display("Abstraction", rend);
+      }
+      windows[name] = nullptr;
+    }
 
   Window::Window(
           int layerCount,
@@ -52,6 +71,12 @@ namespace FK{
       currentWindow = name;
     }
 
+    // std::shared_ptr<Window> window = std::shared_ptr<Window>(this);
+    // windows.insert({name, window});
+    // if(hasOwnThread){
+    //   std::thread(mane, window).detach();
+    // } else openMulti();
+
     // windows.insert({name, std::shared_ptr<Window>(this)});
 
   }
@@ -79,44 +104,56 @@ namespace FK{
     return name;
   }
 
-  void Window::display(){
+  void Window::display(std::string window, ORE::Renderable rend){
+    // std::shared_ptr<Window> window = Window::getWindow(window);
     SDL_RenderClear(context);
-    updateGroupBuffer();
+    // updateGroupBuffer();
 
+    /*
     // Layers shouldn't be erased
     for(int i = 0; i < readBuffer.size(); i++){
       
-      if(readBuffer[i].groups.size() != 0){
+      if(readBuffer[i].groups.size() > 0){
 
         readBuffer[i].groups.erase(
           std::remove_if(std::begin(readBuffer[i].groups), std::end(readBuffer[i].groups),
-            [&, this] (std::shared_ptr<FK::AT::SpriteGroup> sprG) -> bool {
+            [&] (std::shared_ptr<FK::AT::SpriteGroup> sG) -> bool {
               
-              mutex.lock();
-                FK::AT::SpriteGroup& sG = *sprG;
-              mutex.unlock();
+              // mutex.lock();
+              //   FK::AT::SpriteGroup& sG = *sprG;
+              // mutex.unlock();
 
-              if (sG.pendingErase) return true;
-              std::shared_ptr<FK::AT::SuperGroup> superGroup = sG.superGroup;
+              if (sG->pendingErase) return true;
+              std::shared_ptr<FK::AT::SuperGroup> superGroup = sG->superGroup;
               while(superGroup != nullptr){
                 if(superGroup->pendingErase) return true;
                 
-                superGroup = superGroup->parentGroup;
+                superGroup = superGroup->superGroup;
               }
 
-              sG.sprites.erase(
-                std::remove_if(std::begin(sG.sprites), std::end(sG.sprites),
+              sG->sprites.erase(
+                std::remove_if(std::begin(sG->sprites), std::end(sG->sprites),
                   [&] (std::shared_ptr<FK::ORE::Renderable> s) -> bool {
+                  // mutex.lock();
+                  //   FK::ORE::Renderable& s = *spr;
+                  // mutex.unlock();
                   if (s->pendingErase) {
                     return true;
                   }
-                  mutex.lock();
-                  FK::AT::SpriteInformation& sInformation = s->getInformation();
-                  SDL_Rect sdlRect = *s->getSDLRect();
-                  mutex.unlock();
+                  // FK::AT::SpriteInformation* sInformation;
+                  SDL_Rect targetRect;
+
+                  {
+                    // FK::AT::SpriteInformation::Busy(window);
+                    // s->sprInfoRead = s->sprInfoRead;
+                    SDL_Rect targetRect = s->getSDLRect();
+                  }
+
+
                   if(s->texQueued){
-                    s->setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[sInformation.fileName].sur));
-                    Bounds area = sInformation.area;
+                    FK::AT::SpriteInformation::Busy(window);
+                    s->setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[s->sprInfoWrite->fileName].sur));
+                    Bounds area = s->sprInfoWrite->area;
                     if(area.box.width == 0 || area.box.height == 0){
                       SDL_QueryTexture(s->getTexture(), NULL, NULL, &area.box.width, &area.box.height);
                       s->setCrop(area, true);
@@ -124,42 +161,45 @@ namespace FK{
                     s->texQueued = false;
                   }
 
-                  superGroup = sG.superGroup;
+                  superGroup = sG->superGroup;
                   while(superGroup != nullptr){
                     if(superGroup->hidden) return false;
-                    superGroup = superGroup->parentGroup;
+                    superGroup = superGroup->superGroup;
                   }
 
                   if(!(readBuffer[i].hidden | 
-                  sG.hidden  |
-                  sInformation.hidden )){
+                  sG->hidden  |
+                  s->sprInfoRead->hidden )){
                     
-                    // std::shared_ptr<SpriteInformation> sGInformation = sG.information;
+                    // std::shared_ptr<SpriteInformation> sGInformation = sG->information;
 
                     // mutex.lock();
 
-                    if(s->getIgnoreCamera() || sG.superGroup == nullptr){
-                      sdlRect.x = readBuffer[i].offset.x + sInformation.offset.x + sG.offset.x;
-                      sdlRect.y = readBuffer[i].offset.y + sInformation.offset.y + sG.offset.y;
+                    if(s->getIgnoreCamera() || sG->superGroup == nullptr){
+                      targetRect.x = readBuffer[i].offset.x + s->sprInfoRead->bounds.pos.x + sG->bounds.pos.x;
+                      targetRect.y = readBuffer[i].offset.y + s->sprInfoRead->bounds.pos.y + sG->bounds.pos.y;
                     } else {
                       Vec2 superMov = {0,0};
-                      superGroup = sG.superGroup;
+                      superGroup = sG->superGroup;
                       while(superGroup != nullptr){
-                        superMov = superMov + superGroup->offset + sG.worldPos;
-                        superGroup = superGroup->parentGroup;
+                        superMov = superMov + superGroup->bounds.pos + sG->worldPos;
+                        superGroup = superGroup->superGroup;
                       }
-                      sdlRect.x += superMov.x - camPos.x + readBuffer[i].offset.x + sInformation.offset.x + sG.offset.x;
-                      sdlRect.y += superMov.y - camPos.y + readBuffer[i].offset.y + sInformation.offset.y + sG.offset.y;
+                      targetRect.x += camPos.x + readBuffer[i].offset.x + s->sprInfoRead->bounds.pos.x + sG->bounds.pos.x;
+                      targetRect.y += camPos.y + readBuffer[i].offset.y + s->sprInfoRead->bounds.pos.y + sG->bounds.pos.y;
 
                     }
+                    SDL_Rect meow = {0,0,40,40};
                     // Calculer l'angle du renderable et la position par rapport aux rotations préséquentes
-                    SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &sdlRect, sG.angle, (SDL_Point*) sInformation.rotCenter, (SDL_RendererFlip) sInformation.flip);
+                    // SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &targetRect, sG->angle, (SDL_Point*) s->sprInfoRead->rotCenter, (SDL_RendererFlip) s->sprInfoRead->flip);
+                    SDL_RenderCopyEx(context, s->getTexture(), s->getSRCRect(), &meow, sG->angle, (SDL_Point*) s->sprInfoRead->rotCenter, (SDL_RendererFlip) s->sprInfoRead->flip);
                     // mutex.unlock();
                   }
+                  // delete sInformation;
                   return false;
                 }
                 ),
-                std::end(sG.sprites)
+                std::end(sG->sprites)
               );
               // if(sG->superGroup!=nullptr) sG->superGroup->childFramesDrawn = true;
               return false;
@@ -169,16 +209,43 @@ namespace FK{
         );
         }
       }
+    */
+                  //    if(rend.texQueued){
+                  //   // FK::AT::SpriteInformation::Busy(window);
+                  //   rend.setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[rend.sprInfoWrite->fileName].sur));
+                  //   Bounds area = rend.sprInfoWrite->area;
+                  //   if(area.box.width == 0 || area.box.height == 0){
+                  //     SDL_QueryTexture(rend.getTexture(), NULL, NULL, &area.box.width, &area.box.height);
+                  //     rend.setCrop(area, true);
+                  //   }
+                  //   rend.RefreshSpriteInfo();
+                  //   rend.texQueued = false;
+                  // }
+                     if(rend.texQueued){
+                    // FK::AT::SpriteInformation::Busy(window);
+                    rend.setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces["assets/gen_specialchest.png"].sur));
+                    Bounds area = rend.sprInfoRead->area;
+                    if(area.box.width == 0 || area.box.height == 0){
+                      SDL_QueryTexture(rend.getTexture(), NULL, NULL, &area.box.width, &area.box.height);
+                      rend.setCrop(area, true);
+                    }
+                    rend.RefreshSpriteInfo();
+                    rend.texQueued = false;
+                  }
+
+    SDL_Rect* rect = rend.getSDLRect();
+    SDL_RenderCopyEx(context, rend.getTexture(), rend.getSRCRect(), rect, 0, (SDL_Point*) rend.sprInfoRead->rotCenter, (SDL_RendererFlip) rend.sprInfoRead->flip);
+
     SDL_RenderPresent(context);
     // TODO 
-    // SDL_Delay(16); 
+    SDL_Delay(500); 
     ms = SDL_GetTicks();
     if(ms < 5000) {} else if (ms <= 10000) {fps++;}
     if(ms >= 10000 && !fpsShown){
       // AT::addSprite(name,1,std::make_shared<AT::SpriteInformation>(), true);
       AT::loadText(name, 1, 
         std::make_shared<AT::TextInformation>(
-        std::make_shared<AT::Information>(Vec2{0,350}),
+        std::make_shared<AT::Information>(Bounds{0,350,0,0}),
         std::to_string(fps/5),
         "assets/Minecraft.ttf",
         12,

@@ -1,13 +1,13 @@
 #ifndef _FK_RENDERABLE_h_
 #define _FK_RENDERABLE_h_
-
+/*
 #include <atomic>
 #include <memory>
 #include <string>
 
 #include <SDL.h>
 
-#include "primitives.h"
+#include "TSRPrimitives.h"
 #include "fkore.h"
 #include "information.h"
 #include "window.h"
@@ -19,17 +19,17 @@ namespace FK{
     class Renderable {
       protected:
       bool getAngleFromGroup = true;
-      std::shared_ptr<FK::AT::SpriteInformation> information;
       
 
       public:
 
+      std::shared_ptr<FK::AT::SpriteInformation> information;
       void changeSurface(std::string fileName);
       void setRotationCenter(Vec2 center);
 
-      inline FK::AT::SpriteInformation& getInformation(){return *information;};
+      // inline FK::AT::SpriteInformation getInformation(){return *information;};
       // bool hidden = false;
-      std::atomic<bool> pendingErase = false;
+      bool pendingErase = false;
       std::string myWindow;
       std::shared_ptr<FK::AT::SpriteGroup> ownerGroup;
 
@@ -46,12 +46,16 @@ namespace FK{
       // For display loop exclusively
       void const setTexture(SDL_Texture* tex){texture = tex;};
 
+      // TODO :: WAS MOVED AROUND
+      // static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
+      static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
+
 
 
       // RenderTypes type;
 
       SDL_Rect* const getSRCRect(){return &srcRect;};
-      SDL_Rect* const getSDLRect(){return &sdlRect;};
+      SDL_Rect const getSDLRect(){return tgtRect;};
       std::string const getFileName(){return information->fileName;};
       std::atomic<bool> texQueued = true;
 
@@ -68,7 +72,7 @@ namespace FK{
         // this->fileName = info->fileName;
       };
 
-      SDL_Rect sdlRect;
+      SDL_Rect tgtRect;
       SDL_Rect srcRect;
       // std::string fileName;
       // std::atomic<bool> ignoreCamera = true;
@@ -77,7 +81,6 @@ namespace FK{
 
 
       private:
-      static FKORE::SDLSurface* loadSurface(std::string fileName, bool keepImgInMemory = false);
 
       private:
       SDL_Texture* texture;
@@ -150,5 +153,5 @@ namespace FK{
   // END AT namespace
 
 }
-
+*/
 #endif

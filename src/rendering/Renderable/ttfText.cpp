@@ -12,7 +12,7 @@
 #include "information.h"
 #include "identifier.h"
 #include "fkore.h"
-
+// SDL_GetWindowFlags()
 namespace FK{
   namespace AT{
 
@@ -21,22 +21,23 @@ namespace FK{
       // txtID = FK::ORE::Identifier::newtxtID();
 
       FKORE::SDLSurface* txtSur = Text::loadSurface(txtInfo);
-      this->information->fileName = txtSur->fileName;
+      this->sprInfoWrite->fileName = txtSur->fileName;
       this->textInformation = txtInfo;
+      RefreshSpriteInfo();
 
-      srcRect.x = information->area.pos.x;
-      srcRect.y = information->area.pos.y;
+      srcRect.x = sprInfoRead->area.pos.x;
+      srcRect.y = sprInfoRead->area.pos.y;
 
 
       if(txtSur->sur != NULL){
         srcRect.w = txtSur->sur->w;
         srcRect.h = txtSur->sur->h;
-        sdlRect.w = txtSur->sur->w;
-        sdlRect.h = txtSur->sur->h;
+        tgtRect.w = txtSur->sur->w;
+        tgtRect.h = txtSur->sur->h;
       }
 
-      sdlRect.x = 0;
-      sdlRect.y = 0;
+      tgtRect.x = 0;
+      tgtRect.y = 0;
     }
 
 

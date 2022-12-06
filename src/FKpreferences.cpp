@@ -9,7 +9,7 @@
 // #include "renderable.h"
 #include "input.h"
 #include "utility.h"
-#include "preferences.h"
+#include "FKpreferences.h"
 
 
 namespace FK {

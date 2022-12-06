@@ -15,18 +15,21 @@ namespace FK{
 
     Sprite::Sprite(std::shared_ptr<SpriteInformation> info, int layer, bool ignoreCamera, std::string window, std::shared_ptr<SpriteGroup> ownerGroup)
     : ORE::Renderable(info, layer, window, ownerGroup){
-      FKORE::SDLSurface* mySur = loadSurface(info->fileName);
       
+      ORE::Renderable::loadSurface(info->fileName);
+      
+      // information->boxPtr = {&tgtRect.w, &tgtRect.h};
+
       srcRect.x = info->area.pos.x;
       srcRect.y = info->area.pos.y;
 
       if(info->area.box.width != 0 && info->area.box.height != 0){
         srcRect.w = info->area.box.width;
         srcRect.h = info->area.box.height;
-        sdlRect.w = info->area.box.width;
-        sdlRect.h = info->area.box.height;
-        sdlRect.x = 0;
-        sdlRect.y = 0;
+        tgtRect.w = info->area.box.width;
+        tgtRect.h = info->area.box.height;
+        tgtRect.x = 0;
+        tgtRect.y = 0;
       }
     }
 

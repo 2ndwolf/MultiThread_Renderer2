@@ -4,7 +4,8 @@
 
 #include "input.h"
 #include "fkore.h"
-#include "window.h"
+#include "information.h"
+// #include "window.h"
 
 namespace FK {
   namespace ORE{
@@ -17,13 +18,15 @@ namespace FK {
       updateInputStates(FK::ORE::KeyStatesMap::keycodeStates);
 
       while (SDL_PollEvent(&event)) {
-        FK::Window::updateEvents(event);
+
+        // FK::Window::updateEvents(event);
         switch (event.type) { 
 
-        case SDL_WINDOWEVENT: {
-        }
+        case SDL_WINDOWEVENT:
+
+          break;
         case SDL_QUIT: 
-          // return 1;
+          return 2;
 
         case SDL_KEYDOWN:
           KeyStatesMap::keycodeStates.insert({event.key.keysym.scancode, ENUM::KeyStates::DOWN}); 

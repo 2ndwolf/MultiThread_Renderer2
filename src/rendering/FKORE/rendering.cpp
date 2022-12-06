@@ -20,22 +20,28 @@ namespace FK{
     Vec2 minOffset = {INT_MAX,INT_MAX};
     Box groupBox = {0,0};
 
-    for(std::shared_ptr<ORE::Renderable> s : sG->sprites){
-      SpriteInformation& sInfo = s->getInformation();
-      SDL_Rect* sdlRect = s->getSDLRect();
+    FK::AT::SpriteInformation::Busy(sG->myWindow);
+
+    for(int i = 0; i < sG->sprites.size(); i++){
+      SpriteInformation* sInfo = sG->sprites[i]->sprInfoRead;
+      SDL_Rect* tgtRect =  sG->sprites[i]->getSDLRect();
 
       // Ajouter les calculs de caméra
-      groupBox.width  = std::max(groupBox.width,  sdlRect->w + sInfo.offset.x);
-      groupBox.height = std::max(groupBox.height, sdlRect->h + sInfo.offset.y);
+      groupBox.width  = std::max(groupBox.width,  tgtRect->w + sInfo->bounds.pos.x);
+      groupBox.height = std::max(groupBox.height, tgtRect->h + sInfo->bounds.pos.y);
 
-      minOffset.x = std::min(minOffset.x, sInfo.offset.x);
-      minOffset.y = std::min(minOffset.y, sInfo.offset.y);
+      minOffset.x = std::min(minOffset.x, sInfo->bounds.pos.x);
+      minOffset.y = std::min(minOffset.y, sInfo->bounds.pos.y);
+      delete sInfo;
     }
 
     Vec2 midSize = (Vec2) {minOffset.x + groupBox.width, minOffset.y + groupBox.height} / (Vec2) {2,2};
 
-    for(std::shared_ptr<ORE::Renderable> s : sG->sprites){
-      s->setRotationCenter(midSize - s->getInformation().offset);
+    for(int i = 0; i < sG->sprites.size(); i++){
+      std::shared_ptr<FK::AT::SpriteInformation> sInfo = sG->sprites[i]->sprInfoWrite;
+       sInfo->rotCenter = new Vec2{0,0};
+      *sInfo->rotCenter = midSize -  sInfo->bounds.pos;
+      // delete sInfo;
     }
   }
 }
