@@ -1,214 +1,132 @@
-#ifndef _FK_WINDOW_h
-#define _FK_WINDOW_h
+#ifndef _FK_WINDOWS_h
+#define _FK_WINDOWS_h
 
-#include <memory>
-#include <string>
-#include <mutex>
 #include <thread>
+#include <algorithm>
 #include <map>
+#include <string>
+#include <atomic>
 
 #include <SDL.h>
 
-#include "information.h"
+#include "buffer.h"
 #include "primitives.h"
 
-namespace FK{
-  namespace AT{
-    // static std::string newWindow(
-    //     int layerCount,
-    //     Box windowSize,
-    //     std::string name = "Abstraction",
-    //     Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
-    //     SDL_WindowFlags mode = SDL_WINDOW_RESIZABLE,
-    //     bool hasOwnThread = false
-    // );
-    // static void setGroupAsRotationCenter(std::shared_ptr<FK::AT::SpriteGroup> sG);
-    // static void setGroupRotationCenter(std::shared_ptr<FK::AT::SpriteGroup> sG, Vec2 center);
-    // // static const std::string getCurrentWindow(){return currentWindow;};
-    // static const std::string getCurrentWindowName(){return FKORE::currentWindow;};
-    // // static const std::map<std::string, std::shared_ptr<Window>>
-    // static std::shared_ptr<FK::Window> getCurrentWindow(){return FKORE::windows[FKORE::currentWindow];};
-    // static std::shared_ptr<FK::Window> getWindow(std::string windowName){return FKORE::windows[windowName];};
-    // static const int getWindowCount(){return FKORE::windows.size();};
-  }
+namespace MTR{
 
-  class Window {
-      protected:
-      inline static std::map<std::string, std::shared_ptr<Window>> windows = std::map<std::string, std::shared_ptr<Window>>();
-      inline static std::string currentWindow;
+  class Window{
+    private:
+    ~Window(){
+      delete context;
+      delete window;
+    }
 
-      inline Window(){
-        std::thread(multiMane, this).detach();
-      };
-      Window(
-        int layerCount,
-        Box windowSize,
-        std::string name,
-        bool hasOwnThread = false,
-        Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
-        SDL_WindowFlags mode = (SDL_WindowFlags) 0
-        );
+    std::string name;
+    Bounds bounds;
 
-      private:
-      std::thread renderThread;
-      // inline static std::thread multiThread;
-      // inline static Window* threadWindow;
+    std::thread renderThread;
+    inline static std::thread multiThread;
+    inline static bool multiInitialized = false;
+    bool hasOwnThread = false;
+    int ms = 0;
+    int fps = 0;
+    bool fpsShown;
 
-      // MultiWindow Thread
-      // std::thread multiWindowThread;
-      inline static bool multiInitialized = false;
+    SDL_WindowFlags windowFlags; //?
 
-      static void openMulti(){
-        if(!multiInitialized) {
-          multiInitialized = true;
-          Window();
-        }
-      }
-
-      static void closeMulti(){
-        multiInitialized = false;
-      }
-
-      void multiMane(){
-        std::map<std::string, std::shared_ptr<Window>>::iterator it;
-        // bool breakOutOfWhile = false;
-        while (multiInitialized) {
-          if(windows.size() != 0) {
-            int otherThread = 0;
-            for(it = windows.begin(); it != windows.end(); it++){
-
-              if (it->second == nullptr ||
-                  it->second->pendingErase) {
-
-                it = windows.erase(it);
-                if(windows.size() == 0) {
-                  closeMulti();
-                }
-                continue;
-
-              } else if (it->second->getHasOwnThread()) otherThread++;
-              else it->second->display();
-              it++;
-            }
-            if(otherThread == windows.size()) closeMulti();
-          }
-        }
-      }
-
-      void mane(){
-        while(!pendingErase) windows[name]->display();
-        windows[name] = nullptr;
-      }
-
-      bool hasOwnThread = false;
-
-      int ms = 0;
-      int fps = 0;
-      bool fpsShown;
-
-      SDL_WindowFlags windowFlags; //?
-
-      struct Layer{
-        inline Layer(){};
-
-        std::vector<std::shared_ptr<AT::SpriteGroup>> groups = std::vector<std::shared_ptr<AT::SpriteGroup>>();
-
-        FK::ID id;
-        Vec2 offset = {0,0};
-        bool hidden = false;
-      };
-
-      std::vector<Layer> readBuffer = std::vector<Layer>();
-      std::vector<Layer> writeBuffer = std::vector<Layer>();
-
-      std::atomic<bool> mouseFocus;
-      std::atomic<bool> keyboardFocus;
-      std::atomic<bool> fullScreen;
-      std::atomic<bool> minimized;
-      std::atomic<bool> shown;
-      SDL_Window* window;
-      SDL_Renderer* context;
-      std::string name;
-      Box size;
+    std::atomic<bool> mouseFocus;
+    std::atomic<bool> keyboardFocus;
+    std::atomic<bool> fullScreen;
+    std::atomic<bool> minimized;
+    std::atomic<bool> shown;
+    SDL_Window* window;
+    SDL_Renderer* context;
 
 
+    static void openMulti();
+    static void closeMulti();
 
-      void updateGroupBuffer(){
-        // readBuffer = {};
-        // mutex.lock();
-        // for(int i = 0; i < writeBuffer.size(); i++){
-        //   readBuffer.push_back(writeBuffer[i]);
-        // }
-        // mutex.unlock();
-        readBuffer = writeBuffer;
-      };
+    void mane();
+    void multiMane();
 
-      public:
-      std::mutex mutex;
- 
-      Vec2 camPos = {0,0};
-      Vec2 position;
+    protected:
+    inline static std::map<std::string, Window*> windows = std::map<std::string, Window*>();
+    inline static std::string currentWindow;
 
-      int clampLayerIndex(int layer){
-        return std::max(std::min(layer,getLayerCount()-1),0);
-      };
+    Window(
+      int layerCount,
+      Box windowSize,
+      std::string name,
+      bool hasOwnThread = false,
+      Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
+      SDL_WindowFlags mode = (SDL_WindowFlags) 0
+    );
 
-      bool layerInBounds(int layer){
-        return layer > 0 && layer < writeBuffer.size();
-      };
+    public:
+    std::mutex mutex;
+    static std::mutex multimutex;
+    Vec2 camPos = {0,0};
+    MTR::Buffer buffer;
+    void display();
+    void close(){pendingErase = true;};
 
-      const int getBufferSize(){return writeBuffer.size();};
-
-      // Window();
-      static std::string newWindow(
-        int layerCount,
-        Box windowSize,
-        std::string name,
-        bool hasOwnThread = false,
-        Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
-        SDL_WindowFlags mode = (SDL_WindowFlags) 0
-      );
+    bool pendingErase = false; 
 
 
+    static std::string newWindow(
+      int layerCount,
+      Box windowSize,
+      std::string name,
+      bool hasOwnThread = false,
+      Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED}
+      // SDL_WindowFlags mode = (SDL_WindowFlags) 0
+    );
 
-      //Layer methods
-      void hideLayer(int layer){if(layerInBounds(layer)) writeBuffer[layer].hidden = true;};
-      void showLayer(int layer){if(layerInBounds(layer)) writeBuffer[layer].hidden = false;};
-      void offsetLayer(int layer, Vec2 offset){if(layerInBounds(layer)) writeBuffer[layer].offset = offset;};
-
-      
-      
-      std::vector<Layer> getBuffer(){return writeBuffer;};
-      const bool getHasOwnThread() {return hasOwnThread;};
-      // SDL_Window* getSDL_Window(){return window;};
-
-      int getLayerCount(){return writeBuffer.size();};
-      Layer* getLayer(int layer){return &writeBuffer[clampLayerIndex(layer)];};
-
-      static const std::string getCurrentWindowName(){return currentWindow;};
-      static std::shared_ptr<FK::Window> getCurrentWindow(){return windows[currentWindow];};
-      static std::shared_ptr<FK::Window> getWindow(std::string windowName){return windows[windowName];};
-      static const int getWindowCount(){return windows.size();};
-
-      std::string getName(){return name;};
-
-      void pollEvents(SDL_Event event);
-      static void pollWindowEvents(SDL_Event event){
-        std::map<std::string, std::shared_ptr<Window>>::iterator it;
-        if(windows.size() != 0) {/* windows[currentWindow]->display(); */
-          for(it = windows.begin(); it != windows.end(); it++){
-            it->second->pollEvents(event);
-          }
-        }
-      }
-
-      std::atomic<bool> pendingErase = false; 
-
-      void display();
-      void close(){pendingErase = true;};
-
+    int clampLayerIndex(int layer){
+      return std::max(std::min(layer,getLayerCount()-1),0);
     };
 
+    bool layerInBounds(int layer){
+      return layer > 0 && layer < buffer.readBuffer.updLayer->upd.size();
+    };
+
+    static const int getLayerCount(std::string windowName){return windows[windowName]->buffer.readBuffer.updLayer->upd.size();};
+    const bool getHasOwnThread() {return hasOwnThread;};
+
+    SDL_Renderer* getContext(){return context;}
+
+    static const std::string getCurrentWinName(){return currentWindow;};
+    // static MTR::Window* getCurrentWindow(){return windows[currentWindow];};
+    static MTR::Window* getWindow(std::string windowName){return windows[windowName];};
+    static const int getWindowCount(){return windows.size();};
+
+    inline static void updateAll(){
+      std::map<std::string, Window*>::iterator it;
+      for(it = windows.begin(); it != windows.end(); it++){
+        if(it->second->hasOwnThread) it->second->mutex.lock();
+        else multimutex.lock();
+
+        it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
+
+        if(it->second->hasOwnThread) it->second->mutex.unlock();
+        else multimutex.unlock();
+      }
+    }
+
+    inline static void updateOne(std::string window){
+      if(windows[window]->hasOwnThread) windows[window]->mutex.lock();
+      else multimutex.lock();
+
+      windows[window]->buffer.swapBuffer = windows[window]->buffer.writeBuffer;
+
+      if(windows[window]->hasOwnThread) windows[window]->mutex.unlock();
+      else multimutex.unlock();
+    }
+
+  };
+
 }
+
+
 
 #endif

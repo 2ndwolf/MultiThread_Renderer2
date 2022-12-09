@@ -1,97 +1,228 @@
-#ifndef _init_mtr_h_
-#define _init_mtr_h_
+/**
+ * 
+ * MTR
+ * 
+ * Multi Thread Renderer (v2)
+ * cuz once I rebased my local version with an old one ToT
+ * 
+ * This is the library header. Only this header should be
+ * necessary to interface with an MTR lib.
+ * 
+ * (C) MTR's license is the same as SDL's cuz it uses it.
+ * 
+ * License is subject to change once I get rid of the SDL
+ * dependency and write my own rendering back-back-back-end
+ * 
+ * 
+ * Use:
+ * MTR_Init() to initialize MTR
+ * MTR_Close() to close it! (It shall do its cleaning chores someday)
+ * 
+ * MTR::newWindow()   to create a window
+ * 
+ * MTR::createImage() to display an image
+ * MTR::createText()  to display text
+ * 
+ * STORE THOSE SOMEWHERE!!!!
+ * Because when a change is made you gotta call:
+ * update(myImage) or update(myText) or wtv
+ * on them
+ * 
+ * If a change is made after an update, it will be lost for the
+ * renderer.
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+*/
 
-#ifdef MTR_ALL
-  #define MTR_TTF
-  #define MTR_Audio
-  #define MTR_Input 
-  #define MTR_Preferences
-  #define MTR_Video
-#endif
 
-#include <SDL.h>
-#include <functional>
 
-#ifdef MTR_Audio
-  #include "audio.h"
-#endif
-#ifdef MTR_Input
-  #include "input.h"
-#endif
-#ifdef MTR_Preferences
-  #include "preferences.h"
-#endif
-#ifdef MTR_Video
-  #include "fkore.h"
-  #include "information.h"
-  #include "renderable.h"
-  #include "window.h"
-#endif
+#ifndef _MTR_LIBRARY_h_
+#define _MTR_LIBRARY_h_
 
-#include "AT.h"
-#include "primitives.h"
+#include <string>
+#include <memory>
+#include <vector>
+#include <cstdint>
 
-namespace FK::INIT {
-  int init(){
+int MTR_init();
+int MTR_close();
+namespace MTR{
 
-    SDL_SetMainReady();
+  namespace SUR{
+    struct SDLSurface{
+      // std::string fileName;
 
-    if (SDL_Init(
-      SDL_INIT_TIMER | //: timer subsystem
-      #ifdef MTR_Video
-        SDL_INIT_VIDEO |//: video subsystem; automatically initializes the events subsystem
-      #endif
-      #ifdef MTR_Audio
-        SDL_INIT_AUDIO |//: audio subsystem
-      #endif
-      #ifdef MTR_Input
-        SDL_INIT_JOYSTICK //: joystick subsystem; automatically initializes the events subsystem
-        //SDL_INIT_HAPTIC |//: haptic (force feedback) subsystem
-        // SDL_INIT_GAMECONTROLLER |//: controller subsystem; automatically initializes the joystick subsystem
-      #endif
-      // SDL_INIT_EVENTS //: events subsystem
-      ) != 0) { 
-      printf("error initializing SDL: %s\n", SDL_GetError()); 
-      return 1;
+      // SDL_Surface* sur;
+      // int useCount = 0;
+
+      // ~SDLSurface(){
+      //   SDL_FreeSurface(sur);
+      //   delete sur;
+      // }
+    };
+
+    struct Font{
+      // std::string fileName;
+      // TTF_Font* font;
+      // int size;
+
+      // ~Font(){
+      //   TTF_CloseFont(font);
+      //   delete font;
+      // }
+    };
+  }
+
+  class Window{
+    static std::string newWindow(
+      int layerCount,
+      Box windowSize,
+      std::string name,
+      bool hasOwnThread = false,
+      Vec2 position = {50, 50}
+    );
+
+    const int getLayerCount(std::string windowName);
+    static const std::string getCurrentWinName();
+    // static MTR::Window* getCurrentWindow();
+    static MTR::Window* getWindow(std::string windowName);
+    static const int getWindowCount();
+
+    static void updateAll();
+    static void updateOne(std::string window);
+
+  };
+
+  RND::Image* createImage(std::string fileName, Vec2 offset, std::vector<std::string> windows);
+  RND::Text* createText(SUR::Font font, std::string text,Vec2 offset, std::vector<std::string> windows, Color color);
+  struct Color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+  };
+
+  typedef struct Vec2{
+    int x = 0, y = 0;
+
+    bool operator==(const Vec2& comp){
+      return x == comp.x && y == comp.y;
     }
+  } Vec2;
 
-    #ifdef MTR_Video
-      // SDLA::Rendering();
-    #endif
+  typedef struct Box{
+    int width = 0, height = 0;
 
-    #ifdef MTR_Preferences
-      FK::ORE::parseIni("assets/uPref.ini");
-      // 2
-      #ifdef MTR_Input
-        FK::ORE::initKeyBinds(FK::ORE::uPreferences::uPrefs.keys);
-        // 3
-      #endif
-    #endif
+    bool operator==(const Box& comp){
+      return width == comp.width && height == comp.height;
+    }
+    
+  } Box;
 
-    #ifdef MTR_Audio
-      FK::ORE::init();
-      // 4
-    #endif
+  typedef struct Bounds{
+    Vec2 pos;
+    Box box;
 
-    #ifdef MTR_TTF
-      if (TTF_Init() == -1){
-        printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
-        return 5;
-      }
-    #endif
+    bool operator==(const Bounds& comp){
+      return box == comp.box && pos == comp.pos;
+    } 
 
-    return 0;
-  };
+  } Bounds;
 
-  int close(){
-    SDL_Quit();
-    // SDLA::Rendering
-    // SDLA::render->~Rendering();
-    return 0;
-  };
+  namespace ENUM{
+    enum Flip{
+      NONE      ,
+      HORIZONTAL,
+      VERTICAL  
+    };
+  }
+
+  namespace RND{
+    class Image      ;
+    class SuperGroup ;
+    class SpriteGroup;
+
+    struct Layer{
+      // inline Layer(){};
+
+      int  layerNumber;
+      Vec2 offset     ;
+      bool hidden     ;
+      std::vector<std::string> windows;
+
+      void update(Layer layer);
+    };
+
+    class Renderable{
+      std::vector<std::string> windows = {};
+      Bounds     bounds       = {INT_MIN, INT_MIN, 0, 0};
+      bool         hidden       = false             ;
+      int          angle        = 0                 ;
+      Vec2         rotCenter    = {INT_MAX, INT_MAX};
+      Vec2         zoomCenter   = {INT_MAX, INT_MAX};
+      Vec2         zoom         = {100,100}         ;
+      ENUM::Flip   flip         = ENUM::Flip::NONE  ;
+      bool         angleFrSuper = true              ;
+      SuperGroup*  ownerGroup   = nullptr           ;
+      bool         pendingErase = false             ;
+    };
+
+
+    class Image : public Renderable{
+      void setSurface(std::string fileName);
+      static void update(Image* image);
+
+      static void group(SpriteGroup* sG, std::vector<Image*> imgs);
+      void group(SpriteGroup* sG);
+
+      void setCrop(Bounds crop);
+
+      Bounds area = {0,0,0,0};
+      int layer = 0;
+      std::string fileName;
+    };
+
+    class SpriteGroup: public Renderable{
+      int  layer       ;
+      bool ignoreCamera;
+      Vec2 worldPos    ;
+
+      static void update(SpriteGroup* group);
+
+      void refreshBounds(Renderable* rend);
+
+      void placeSprites(std::vector<MTR::RND::Image*> spr);
+      void placeSprite(MTR::RND::Image* spr);
+      void placeSprite(void* ptr, MTR::RND::Image* spr);
+
+
+    };
+
+    class SuperGroup : public Renderable {
+      static void update(SuperGroup* group);
+      void  refreshBounds(Renderable* rend);
+    };
+
+    class Text : public Image {
+      void Text::setSurface    (std::string newText);
+      inline void Text::setText(std::string newText){setSurface(newText);};
+
+      static void update(Text* image);
+      static SUR::Font Text::loadFont(std::string fileName, int size);
+
+      SUR::Font font;
+      int size;
+      Color textColor;
+    };
+  }
 }
-
-std::function<int()> FK_Init  = FK::INIT::init;
-std::function<int()> FK_Close = FK::INIT::close;
 
 #endif

@@ -1,7 +1,7 @@
-#ifndef _SDLA_primitives_h
-#define _SDLA_primitives_h
+#ifndef _MTR_PRIMITIVES_h_
+#define _MTR_PRIMITIVES_h_
 
-namespace FK {
+namespace MTR {
 
   typedef int ID;
 
@@ -11,6 +11,13 @@ namespace FK {
   //   int layer;
   // } idInf;
 
+  struct Color {
+    Uint8 r;
+    Uint8 g;
+    Uint8 b;
+    Uint8 a;
+  };
+
   typedef struct Vec2{
     int x = 0, y = 0;
 
@@ -18,19 +25,19 @@ namespace FK {
       return x == comp.x && y == comp.y;
     }
 
-    Vec2 operator-(const Vec2& comp){
-      return {x-comp.x, y-comp.y};
-    }
+    // Vec2 operator-(const Vec2& comp){
+    //   return {x-comp.x, y-comp.y};
+    // }
 
-    Vec2 operator+(const Vec2& comp){
-      return {x+comp.x, y+comp.y};
-    }
+    // Vec2 operator+(const Vec2& comp){
+    //   return {x+comp.x, y+comp.y};
+    // }
 
-    Vec2 operator/(const Vec2 comp){
-      return {x/comp.x, y/comp.y};
-    }
+    // Vec2 operator/(const Vec2 comp){
+    //   return {x/comp.x, y/comp.y};
+    // }
 
-  } Vec2, WorldPos, ScreenPos;
+  } Vec2;
 
   typedef struct Box{
     int width = 0, height = 0;
@@ -50,11 +57,5 @@ namespace FK {
     } 
 
   } Bounds;
-
-  // struct Position{
-  //   Vec2 worldPos;
-  //   Vec2 offset;
-  // };
-
-// }
+  
 #endif

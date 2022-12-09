@@ -1,38 +1,27 @@
-#ifndef _FK_identifier_h
-#define _FK_identifier_h
+#ifndef _MTR_IDENTIFIER_h_
+#define _MTR_IDENTIFIER_h_
 
 #include "primitives.h"
 
-namespace FK{
+namespace MTR{
 
-  namespace ORE{
-
-    class Identifier{
-      private:
-        inline static FK::ID currtID = -1;
-        inline static FK::ID txtID = -1;
-        inline static FK::ID winID = -1;
-      public:
-        static FK::ID newID(){
-          currtID++;
-          return currtID;
-        }
-        static FK::ID newtxtID(){
-          txtID++;
-          return txtID;
-        }
-        static FK::ID newWinID(){
-          winID++;
-          return winID;
-        }
-        static FK::ID noID(){
-          return -1;
-        }
-        // static void initIDs(){
-        //   FK::ID currtID = -1;
-        // }
-    };
-  }
+  class Identifier{
+    private:
+      // static MTR::ID currtID;
+      static MTR::ID textID;
+    public:
+      // static MTR::ID newID(){
+      //   currtID++;
+      //   return currtID;
+      // }
+      inline static MTR::ID newtextID(){
+        textID++;
+        return textID;
+      };
+      inline static MTR::ID noID(){
+        return -1;
+      };
+  };
 
 }
 

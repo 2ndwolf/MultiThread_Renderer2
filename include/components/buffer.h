@@ -1,5 +1,5 @@
-#ifndef MTR_BUFFER_h
-#define MTR_BUFFER_h
+#ifndef _MTR_BUFFER_h_
+#define _MTR_BUFFER_h_
 
 #include <vector>
 #include <map>
@@ -9,12 +9,11 @@
 #include "superGroup.h"
 #include "image.h"
 #include "layer.h"
+#include "renderUpdates.h"
 
-namespace FK{
-  int layerCount;
+namespace MTR{
+
   class Buffer{
-    
-    
     public:
     RenderUpdates writeBuffer;
     RenderUpdates readBuffer ;
@@ -33,82 +32,69 @@ namespace FK{
       //lock independent windows independently
       //lock multiMutex
       //
-      // swapBuffer =
-      for(int layer = 0; layer < layerCount; layer++){
+      for(int layer = 0; layer < source->updLayer->upd.size(); layer++){
         for(int i = 0; i < RenderUpdates::updType::LENGTH; i++){
-          // it;
-          UpdateType* src = source->checkUpdType((RenderUpdates::updType)i);
-          UpdateType* tgt = target->checkUpdType((RenderUpdates::updType)i);
           switch(i){
             case RenderUpdates::updType::LAYER:
             { 
-              std::map<void*, FK::    Layer      >::iterator it;
-              for(it  = ((LayerUpdate*)src)->upd[layer].begin();
-                  it != ((LayerUpdate*)src)->upd[layer].end()  ; it++){
-                  ((LayerUpdate*)tgt)->upd[layer].emplace(it->first, it->second);
-              }
-              ((LayerUpdate*)src)->upd[layer].clear();
+              // std::map<void*, FK::    Layer      >::iterator it;
+              // for(it  = source->updLayer->upd[layer].begin();
+              //     it != source->updLayer->upd[layer].end()  ; it++){
+              //     target->updLayer->upd[layer].emplace(it->first, it->second);
+              // }
+              target->updLayer->upd[layer] = source->updLayer->upd[layer];
+              // source->updLayer->upd[layer] 
             }
            break;
             case RenderUpdates::updType::SPRITE:
             {
-              std::map<void*, FK::AT::Image      >::iterator it;
-              for(it  = ((SpriteUpdate*)src)->upd[layer].begin();
-                  it != ((SpriteUpdate*)src)->upd[layer].end  (); it++){
-                  // FK::AT::Sprite spr;
-                  // spr.deepCopy(&it->second, &spr);
+              std::map<void*, MTR::RND::Image      >::iterator it;
+              for(it  = source->updSprite->upd[layer].begin();
+                  it != source->updSprite->upd[layer].end  (); it++){
                   target->updSpriteGroup->upd[layer]
-                  [it->second.ownerGroup].replaceSprite(it->first, &(it->second));
-                  // ((SpriteUpdate*)tgt)->upd[layer].emplace();
+                  [(void*)&(it->second.ownerGroup)].
+                  placeSprite(it->first, &(it->second));
               }
-              ((SpriteUpdate*)src)->upd[layer].clear();
+              source->updSprite->upd[layer].clear();
             }
             break;
             case RenderUpdates::updType::TEXT:
             {
-              std::map<void*, FK::AT::Text      >::iterator it;
-              for(it  = ((TextUpdate*)src)->upd[layer].begin();
-                  it != ((TextUpdate*)src)->upd[layer].end  (); it++){
-                  // FK::AT::Text spr;
-                  // spr.deepCopy(&it->second, &spr);
+              std::map<void*, MTR::RND::Text      >::iterator it;
+              for(it  = source->updText->upd[layer].begin();
+                  it != source->updText->upd[layer].end  (); it++){
                   target->updSpriteGroup->upd[layer]
-                  [it->second.ownerGroup].replaceSprite(it->first, &(it->second));
-                  // ((TextUpdate*)tgt)->upd[layer].emplace();
+                  [(void*)&(it->second.ownerGroup)].
+                  placeSprite(it->first, &(it->second));
               }
-              ((TextUpdate*)src)->upd[layer].clear();
+              source->updText->upd[layer].clear();
             }
 
            break;
             case RenderUpdates::updType::SPRITEGROUP:
             { 
-              std::map<void*, FK::AT::SpriteGroup      >::iterator it;
-              for(it  = ((SpriteGroupUpdate*)src)->upd[layer].begin();
-                  it != ((SpriteGroupUpdate*)src)->upd[layer].end()  ; it++){
-                  ((SpriteGroupUpdate*)tgt)->upd[layer].emplace(it->first, it->second);
+              std::map<void*, MTR::RND::SpriteGroup      >::iterator it;
+              for(it  = source->updSpriteGroup->upd[layer].begin();
+                  it != source->updSpriteGroup->upd[layer].end()  ; it++){
+                  target->updSpriteGroup->upd[layer].emplace(it->first, it->second);
               }
-              ((SpriteGroupUpdate*)src)->upd[layer].clear();
+              source->updSpriteGroup->upd[layer].clear();
             }
            break;
             case RenderUpdates::updType::SUPERGROUP:
             { 
-              std::map<void*, FK::AT::SuperGroup      >::iterator it;
-              for(it  = ((SuperGroupUpdate*)src)->upd[layer].begin();
-                  it != ((SuperGroupUpdate*)src)->upd[layer].end()  ; it++){
-                  ((SuperGroupUpdate*)tgt)->upd[layer].emplace(it->first, it->second);
+              std::map<void*, MTR::RND::SuperGroup      >::iterator it;
+              for(it  = source->updSuperGroup->upd.begin();
+                  it != source->updSuperGroup->upd.end()  ; it++){
+                  target->updSuperGroup->upd.emplace(it->first, it->second);
               }
-              ((SuperGroupUpdate*)src)->upd[layer].clear();
+              source->updSuperGroup->upd.clear();
             }
            break;
 
           }
         }
       }
-    }
-
-    void swapAllWrites(){
-      // for(RenderUpdates wB: writeBuffers){
-      //   swapBuffers(&wB, &swapBuffer);
-      // }
     }
   };
 }
