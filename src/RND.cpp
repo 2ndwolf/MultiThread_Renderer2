@@ -1,4 +1,3 @@
-// #include "rendering.h"
 #include <SDL.h>
 
 #include "defaults.h"

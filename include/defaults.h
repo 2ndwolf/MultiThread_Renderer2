@@ -1,5 +1,5 @@
-#ifndef __FKdefaults_h_
-#define __FKdefaults_h_
+#ifndef __MTR_DEFAULTS_h_
+#define __MTR_DEFAULTS_h_
 
 #include <string>
 

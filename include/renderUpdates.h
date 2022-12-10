@@ -18,7 +18,7 @@ namespace MTR{
     // std::vector<std::map<void*, MTR::    Layer      >> upd;
     };
 
-  class LayerUpdate       : public UpdateType{public:
+  class LayerUpdate   : public UpdateType{public:
   // std::vector<MTR::Layer>>::iterator it;
   std::vector<MTR::RND::Layer> upd;};
 
@@ -26,7 +26,7 @@ namespace MTR{
   std::vector<std::map<void*, MTR::RND::Image >>::iterator it;
   std::vector<std::map<void*, MTR::RND::Image >> upd;};
 
-  class TextUpdate  : public UpdateType{public:
+  class TextUpdate   : public UpdateType{public:
   std::vector<std::map<void*, MTR::RND::Text >>::iterator it;
   std::vector<std::map<void*, MTR::RND::Text >> upd;};
 

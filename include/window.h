@@ -1,5 +1,5 @@
-#ifndef _FK_WINDOWS_h
-#define _FK_WINDOWS_h
+#ifndef _MTR_WINDOWS_h
+#define _MTR_WINDOWS_h
 
 #include <thread>
 #include <algorithm>
@@ -17,8 +17,8 @@ namespace MTR{
   class Window{
     private:
     ~Window(){
-      delete context;
-      delete window;
+      // delete context;
+      // delete window;
     }
 
     std::string name;
@@ -34,11 +34,11 @@ namespace MTR{
 
     SDL_WindowFlags windowFlags; //?
 
-    std::atomic<bool> mouseFocus;
-    std::atomic<bool> keyboardFocus;
-    std::atomic<bool> fullScreen;
-    std::atomic<bool> minimized;
-    std::atomic<bool> shown;
+    bool mouseFocus;
+    bool keyboardFocus;
+    bool fullScreen;
+    bool minimized;
+    bool shown;
     SDL_Window* window;
     SDL_Renderer* context;
 
@@ -90,6 +90,7 @@ namespace MTR{
       return layer > 0 && layer < buffer.readBuffer.updLayer->upd.size();
     };
 
+    const int getLayerCount(){return buffer.readBuffer.updLayer->upd.size();};
     static const int getLayerCount(std::string windowName){return windows[windowName]->buffer.readBuffer.updLayer->upd.size();};
     const bool getHasOwnThread() {return hasOwnThread;};
 

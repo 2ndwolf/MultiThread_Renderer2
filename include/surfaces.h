@@ -1,5 +1,5 @@
-#ifndef _FKORE_h_
-#define _FKORE_h_
+#ifndef _MTR_SURFACES_h_
+#define _MTR_SURFACES_h_
 
 #include <string>
 #include <map>

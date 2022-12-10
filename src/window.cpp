@@ -6,9 +6,8 @@
 
 #include <SDL.h>
 
-#include "buffer.h"
+// #include "buffer.h"
 #include "primitives.h"
-// #include "fkore.h"
 #include "window.h"
 #include "layer.h"
 #include "superGroup.h"
@@ -190,7 +189,7 @@ namespace MTR{
           ){
           if(Iit->second->pendingErase){
             // for(SDL_Texture* tex : )
-            delete rB.updSpriteGroup->upd[layer][SpGit->first].sprites[Iit->first]->textures[name];
+            SDL_DestroyTexture(rB.updSpriteGroup->upd[layer][SpGit->first].sprites[Iit->first]->textures[name]);
             // }
             rB.updSpriteGroup->upd[layer][SpGit->first].sprites.erase(Iit->first);
             continue;
