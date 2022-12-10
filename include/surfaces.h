@@ -3,14 +3,13 @@
 
 #include <string>
 #include <map>
-#include <memory>
-#include <thread>
+// #include <memory>
+// #include <thread>
 
 #include <SDL.h>
 #include <SDL_image.h> 
 #include <SDL_ttf.h>
 
-#include "defaults.h"
 
 namespace MTR {
   // class Rendering;
@@ -35,7 +34,7 @@ namespace MTR {
 
     ~Font(){
       TTF_CloseFont(font);
-      delete font;
+      // delete font;
     }
   };
 
@@ -44,24 +43,7 @@ namespace MTR {
   inline std::map<std::string, SDLSurface> surfaces;
   inline std::map<std::string, Font> fonts;
 
-  void loadSurface(std::string fileName, bool keepImgInMemory = false){
-      if(!surfaces.count(fileName)){
-        SDLSurface newSur;
-        newSur.sur = IMG_Load(fileName.c_str());
-        if(newSur.sur == NULL) newSur.sur = IMG_Load(Defaults::placeHolder.c_str());
-        newSur.fileName = fileName;
-        if(keepImgInMemory) newSur.useCount = -1;
-        else newSur.useCount = 1;
-        surfaces.insert({fileName, newSur});
-
-      } else if (keepImgInMemory){
-        surfaces[fileName].useCount = -1;
-
-      } else if (surfaces[fileName].useCount != -1){
-        surfaces[fileName].useCount += 1;
-      }
-
-    }
+  void loadSurface(std::string fileName, bool keepImgInMemory = false);
 
   //   void changeSurface(std::string fileN){
   //     if(surfaces[information->fileName].useCount != -1){

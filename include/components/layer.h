@@ -5,7 +5,7 @@
 #include <string>
 
 #include "primitives.h"
-#include "window.h"
+// #include "window.h"
 
 
 namespace MTR{
@@ -18,16 +18,9 @@ namespace MTR{
       Vec2 offset = {0,0};
       bool hidden = false;
 
-      inline ~Layer(){
-      };
-      void update(Layer layer){
-        if(layer.windows.size() != 0){
-          for(int i = 0; i < layer.windows.size(); i++){
-            Window::getWindow(layer.windows[i])->
-            buffer.writeBuffer.updLayer->upd[layer.layerNumber] = layer;
-          }
-        }
-      }
+      inline ~Layer(){};
+
+      void update(Layer layer);
     };
   }
 }

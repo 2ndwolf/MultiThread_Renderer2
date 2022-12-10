@@ -7,7 +7,7 @@
 #include "image.h"
 #include "superGroup.h"
 #include "renderable.h"
-#include "window.h"
+// #include "window.h"
 
 
 namespace MTR{
@@ -16,12 +16,17 @@ namespace MTR{
 
     class SpriteGroup : public SuperGroup {
       public:
-      int layer = 0;
+      int layer         = 0;
       bool ignoreCamera = true ;
       Vec2 worldPos     = {0,0};
 
+      static void deepCopy(SpriteGroup* source, SpriteGroup* target);
 
       inline SpriteGroup(){};
+
+      static SpriteGroup gimmesG(){
+        return SpriteGroup();
+      }
 
       // inline SpriteGroup(std::map<void*, MTR::RND::Image> sprites){
       //   updateSprites(sprites);
@@ -45,35 +50,13 @@ namespace MTR{
       //   }
       //   // setUpdate();
       // }
+      bool checkSanity();
+      void refreshBounds(Renderable* rend);
 
-      void refreshBounds(Renderable* rend){
-        Vec2 oldPos = bounds.pos;
-        SuperGroup::refreshBounds(rend);
-
-        if(bounds.pos != oldPos && !ignoreCamera){
-          worldPos.x -= bounds.pos.x - oldPos.x;
-          worldPos.y -= bounds.pos.y - oldPos.y;
-        }
-      }
-
-      inline void placeSprites(std::vector<MTR::RND::Image*> spr){
-        for(int i = 0; i < spr.size(); i++){
-          placeSprite(spr[i]);
-        }
-      }
-      inline void placeSprite(MTR::RND::Image* spr){
-        sprites[&spr] = spr;
-      }
+      void placeSprites(std::vector<MTR::RND::Image*> spr);
+      void placeSprite(MTR::RND::Image* spr);
+      void placeSprite(void* ptr, MTR::RND::Image* spr);
       
-      inline void placeSprite(void* ptr, MTR::RND::Image* spr){
-        sprites.emplace(ptr, spr);
-      }
-
-      // inline static void deepCopy(SpriteGroup* source, SpriteGroup* target){
-      //   if(source->toUpdate){
-      //     target->sprites = source->sprites;
-      //     SuperGroup::deepCopy((SuperGroup*) source, target);
-      //   }
 
       std::map<void*, MTR::RND::Image*> sprites;
       // protected:

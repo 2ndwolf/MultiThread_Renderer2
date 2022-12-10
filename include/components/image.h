@@ -5,12 +5,13 @@
 
 #include "renderable.h"
 #include "surfaces.h"
-#include "window.h"
+// #include "window.h"
 #include "defaults.h"
 
 namespace MTR{
   // inline std::string placeHolderImage = "assets/gen_specialchest.png";
   namespace RND{
+    class SpriteGroup;
 
     class Image : public Renderable {
       public:
@@ -18,17 +19,8 @@ namespace MTR{
       void setSurface(std::string fileName);
       static void update(Image* image);
 
-      static void group(SpriteGroup* sG, std::vector<Image*> imgs){
-        for(int i = 0; i < imgs.size(); i++){
-          imgs[i]->Renderable::group(sG);
-        }
-        sG->placeSprites(imgs);
-      }
-
-      void group(SpriteGroup* sG){
-        this->Renderable::group(sG);
-        sG->placeSprite(this);
-      }
+      static void group(SpriteGroup* sG, std::vector<Image*> imgs);
+      void group(SpriteGroup* sG);
 
       // void switchLayer(int newLayer){
       //   if(newLayer != layer){
@@ -39,6 +31,7 @@ namespace MTR{
       Bounds area = {0,0,0,0};
       int layer = 0;
 
+      static void deepCopy(Image* source, Image* target);
 
       SDL_Rect tgtRect;
       SDL_Rect srcRect;

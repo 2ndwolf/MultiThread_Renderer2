@@ -1,6 +1,8 @@
 #ifndef _MTR_PRIMITIVES_h_
 #define _MTR_PRIMITIVES_h_
 
+#include <cstdint>
+
 namespace MTR {
 
   typedef int ID;
@@ -12,10 +14,10 @@ namespace MTR {
   // } idInf;
 
   struct Color {
-    Uint8 r;
-    Uint8 g;
-    Uint8 b;
-    Uint8 a;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
   };
 
   typedef struct Vec2{

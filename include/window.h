@@ -101,28 +101,8 @@ namespace MTR{
     static MTR::Window* getWindow(std::string windowName){return windows[windowName];};
     static const int getWindowCount(){return windows.size();};
 
-    inline static void updateAll(){
-      std::map<std::string, Window*>::iterator it;
-      for(it = windows.begin(); it != windows.end(); it++){
-        if(it->second->hasOwnThread) it->second->mutex.lock();
-        else multimutex.lock();
-
-        it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
-
-        if(it->second->hasOwnThread) it->second->mutex.unlock();
-        else multimutex.unlock();
-      }
-    }
-
-    inline static void updateOne(std::string window){
-      if(windows[window]->hasOwnThread) windows[window]->mutex.lock();
-      else multimutex.lock();
-
-      windows[window]->buffer.swapBuffer = windows[window]->buffer.writeBuffer;
-
-      if(windows[window]->hasOwnThread) windows[window]->mutex.unlock();
-      else multimutex.unlock();
-    }
+    static void updateAll();
+    static void updateOne(std::string window);
 
   };
 

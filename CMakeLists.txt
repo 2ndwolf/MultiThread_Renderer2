@@ -58,6 +58,7 @@ find_package(SDL2_ttf REQUIRED)
 
 # set(CMAKE_CXX_STANDARD_LIBRARIES "-lmingw32 -lSDL2main -lSDL2 ${CMAKE_CXX_STANDARD_LIBRARIES}")
 
+# add_compile_options(-M -H)
 
 configure_file("${PROJECT_SOURCE_DIR}/assets/uPref.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/uPref.ini" COPYONLY)
 
@@ -73,11 +74,11 @@ if(NOT STATIC_BUILD)
 	file(COPY ${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/${sdl_p_folder}/bin/SDL2_ttf.dll DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
 
 	add_library(MTR ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS} ${NESTEDHEADERS})
-	target_link_libraries(MTR 
-	SDL2::SDL2 
-	SDL2_image::SDL2_image 
-	# SDL2_mixer::SDL2_mixer 
-	SDL2_ttf::SDL2_ttf)
+	# target_link_libraries(MTR 
+	# SDL2::SDL2 
+	# SDL2_image::SDL2_image 
+	# # SDL2_mixer::SDL2_mixer 
+	# SDL2_ttf::SDL2_ttf)
 else()
 	add_library(MTR STATIC ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS} ${NESTEDHEADERS})
 	#SDL2_ttf doesn't behave when static

@@ -5,6 +5,7 @@
 
 #include "image.h"
 #include "surfaces.h"
+#include "text.h"
 
 namespace MTR{
 

@@ -8,55 +8,26 @@
 
 #include "primitives.h"
 #include "fkenum.h"
-#include "window.h"
+// #include "window.h"
 
 
 namespace MTR{
 
   namespace RND{
+    class SuperGroup;
 
     class Renderable{
       protected:
       std::atomic<bool> updateAsRenderable;
       bool isQueued = false;
 
-      bool checkSanity(){
-        return (
-          !(bounds == (Bounds){{INT_MIN, INT_MIN}, {0, 0}}) &&
-          !(windows.size() == 0)
-          // rnd->rotCenter != 
-        );
-      }
-
-      void refreshRotCenter(){
-        if(angleFrSuper){
-          rotCenter.x =
-          ownerGroup->bounds.box.width / 2;
-          rotCenter.y =
-          ownerGroup->bounds.box.height / 2;
-        }
-      }
+      bool checkSanity();
+      void refreshRotCenter();
 
       public:
-      bool addToQueue(){
-        if(!isQueued){
-          isQueued = true;
-          return true;
-        }
-        return false;
-      }
+      bool addToQueue();
+      void group(SuperGroup* supG);
 
-      void group(SuperGroup* supG){
-        supG->refreshBounds(this);
-        refreshRotCenter();
-        ownerGroup = supG;
-      }
-
-
-      // void group(SpriteGroup* sG){
-      //   ownerGroup = sG;
-      // }
-      // inline Renderable(){};
 
       std::vector<std::string> windows = {};
       Bounds     bounds       = {INT_MIN, INT_MIN, 0, 0};
@@ -86,8 +57,8 @@ namespace MTR{
         Vec2         pzoom         = {100,100}         ,
         ENUM::Flip   pflip         = ENUM::Flip::NONE  ,
         bool         pangleFrSuper = true              ,
-        SuperGroup*  pownerGroup   = nullptr           ,
-        int          player        = 0
+        SuperGroup*  pownerGroup   = nullptr       
+        // int          player        = 0
 
       ) : windows     (pwindows     ),
           bounds      (pbounds      ),
@@ -104,7 +75,6 @@ namespace MTR{
           // self        ((void*)&this )
       {};
 
-      // inline void setIgnoreCamera(bool setting){
       //   ignoreCamera = setting;
       //   setUpdate();
       // };
@@ -160,20 +130,7 @@ namespace MTR{
       public:
       // bool writeCycles;
 
-      inline static Renderable& deepCopy(Renderable* source, Renderable* target){
-        target->bounds       = source->bounds       ;
-        // target->ignoreCamera = source->ignoreCamera ;
-        target->hidden       = source->hidden       ;
-        target->angle        = source->angle        ;
-        target->rotCenter    = source->rotCenter    ;
-        target->zoomCenter   = source->zoomCenter   ;
-        target->zoom         = source->zoom         ;
-        target->flip         = source->flip         ;
-        target->angleFrSuper = source->angleFrSuper ;
-        target->ownerGroup   = source->ownerGroup   ;
-        return *target;
-        // target->writeCycles  = writeCycles;
-      }
+      static void deepCopy(Renderable* source, Renderable* target);
 
       // Renderable& operator=(const Renderable& r){
       //   bounds       = r.bounds       ;

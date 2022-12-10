@@ -6,8 +6,8 @@
 
 #include <SDL.h>
 
-// #include "buffer.h"
-#include "primitives.h"
+#include "buffer.h"
+#include "primitives.h" 
 #include "window.h"
 #include "layer.h"
 #include "superGroup.h"
@@ -263,6 +263,29 @@ namespace MTR{
     }
 
     SDL_RenderPresent(context);
+  }
+
+  void Window::updateAll(){
+    std::map<std::string, Window*>::iterator it;
+    for(it = windows.begin(); it != windows.end(); it++){
+      if(it->second->hasOwnThread) it->second->mutex.lock();
+      else multimutex.lock();
+
+      it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
+
+      if(it->second->hasOwnThread) it->second->mutex.unlock();
+      else multimutex.unlock();
+    }
+  }
+
+  void Window::updateOne(std::string window){
+    if(windows[window]->hasOwnThread) windows[window]->mutex.lock();
+    else multimutex.lock();
+
+    windows[window]->buffer.swapBuffer = windows[window]->buffer.writeBuffer;
+
+    if(windows[window]->hasOwnThread) windows[window]->mutex.unlock();
+    else multimutex.unlock();
   }
 
 }

@@ -6,7 +6,7 @@
 #include <SDL.h>
 
 #include "image.h"
-#include "window.h"
+// #include "window.h"
 #include "primitives.h"
 
 
@@ -17,19 +17,19 @@ namespace MTR{
     class Text : public Image {
       public:
       // Image overload
-      void Text::setSurface    (std::string newText);
-      inline void Text::setText(std::string newText){setSurface(newText);};
+      void setSurface (std::string newText);
+      void setText    (std::string newText);
 
       // Renderable overload
       static void update(Text* image);
 
-
+      static void deepCopy(Text* source, Text* target);
       // std::string text;
       SUR::Font font;
       int size;
       Color textColor;
 
-      static SUR::Font Text::loadFont(std::string fileName, int size);
+      static SUR::Font loadFont(std::string fileName, int size);
       // private:
     };
   }

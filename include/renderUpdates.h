@@ -23,20 +23,20 @@ namespace MTR{
   std::vector<MTR::RND::Layer> upd;};
 
   class SpriteUpdate  : public UpdateType{public:
-  std::vector<std::map<void*, MTR::RND::Image >>::iterator it;
-  std::vector<std::map<void*, MTR::RND::Image >> upd;};
+  std::vector<std::map<void*, MTR::RND::Image* >>::iterator it;
+  std::vector<std::map<void*, MTR::RND::Image* >> upd;};
 
   class TextUpdate   : public UpdateType{public:
-  std::vector<std::map<void*, MTR::RND::Text >>::iterator it;
-  std::vector<std::map<void*, MTR::RND::Text >> upd;};
+  std::vector<std::map<void*, MTR::RND::Text* >>::iterator it;
+  std::vector<std::map<void*, MTR::RND::Text* >> upd;};
 
   class SpriteGroupUpdate : public UpdateType{public:
-  std::vector<std::map<void*, MTR::RND::SpriteGroup>>::iterator it;
-  std::vector<std::map<void*, MTR::RND::SpriteGroup>> upd;};
+  std::vector<std::map<void*, MTR::RND::SpriteGroup*>>::iterator it;
+  std::vector<std::map<void*, MTR::RND::SpriteGroup*>> upd;};
 
   class SuperGroupUpdate  : public UpdateType{public:
-  std::map<void*, MTR::RND::SuperGroup >::iterator it;
-  std::map<void*, MTR::RND::SuperGroup > upd;};
+  std::map<void*, MTR::RND::SuperGroup* >::iterator it;
+  std::map<void*, MTR::RND::SuperGroup* > upd;};
 
   class RenderUpdates{
     public:
@@ -48,10 +48,10 @@ namespace MTR{
 
     RenderUpdates(int layers){
       updLayer      ->upd = std::vector<                MTR::RND::Layer       >(layers);
-      updText       ->upd = std::vector<std::map<void*, MTR::RND::Text       >>(layers);
-      updSprite     ->upd = std::vector<std::map<void*, MTR::RND::Image      >>(layers);
-      updSpriteGroup->upd = std::vector<std::map<void*, MTR::RND::SpriteGroup>>(layers);
-      updSuperGroup ->upd =             std::map<void*, MTR::RND::SuperGroup > ();
+      updText       ->upd = std::vector<std::map<void*, MTR::RND::Text*       >>(layers);
+      updSprite     ->upd = std::vector<std::map<void*, MTR::RND::Image*      >>(layers);
+      updSpriteGroup->upd = std::vector<std::map<void*, MTR::RND::SpriteGroup*>>(layers);
+      updSuperGroup ->upd =             std::map<void*, MTR::RND::SuperGroup* > ();
     };
 
     RenderUpdates(){};
