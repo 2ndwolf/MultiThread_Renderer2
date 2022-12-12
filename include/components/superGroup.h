@@ -14,7 +14,9 @@ namespace MTR{
 
     class SuperGroup : public Renderable {
       public:
-      inline SuperGroup(){};
+      inline SuperGroup(std::vector<std::string> pwindows):
+      Renderable(pwindows)
+      {};
 
       static void update(SuperGroup* group);
 

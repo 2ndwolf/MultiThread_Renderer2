@@ -21,7 +21,7 @@ namespace MTR{
       void setText    (std::string newText);
 
       // Renderable overload
-      static void update(Text* image);
+      // static void update(Text* image);
 
       static void deepCopy(Text* source, Text* target);
       // std::string text;

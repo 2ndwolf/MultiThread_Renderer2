@@ -11,14 +11,14 @@
 namespace MTR{
   namespace RND{
     struct Layer{
-      inline Layer(){};
+      // inline Layer(){};
 
       int layerNumber = 0;
       std::vector<std::string> windows = std::vector<std::string>();
       Vec2 offset = {0,0};
       bool hidden = false;
 
-      inline ~Layer(){};
+      // inline ~Layer(){};
 
       void update(Layer layer);
     };

@@ -22,13 +22,13 @@ namespace MTR{
   // std::vector<MTR::Layer>>::iterator it;
   std::vector<MTR::RND::Layer> upd;};
 
-  class SpriteUpdate  : public UpdateType{public:
-  std::vector<std::map<void*, MTR::RND::Image* >>::iterator it;
-  std::vector<std::map<void*, MTR::RND::Image* >> upd;};
+  // class SpriteUpdate  : public UpdateType{public:
+  // std::vector<std::map<void*, MTR::RND::Image* >>::iterator it;
+  // std::vector<std::map<void*, MTR::RND::Image* >> upd;};
 
-  class TextUpdate   : public UpdateType{public:
-  std::vector<std::map<void*, MTR::RND::Text* >>::iterator it;
-  std::vector<std::map<void*, MTR::RND::Text* >> upd;};
+  // class TextUpdate   : public UpdateType{public:
+  // std::vector<std::map<void*, MTR::RND::Text* >>::iterator it;
+  // std::vector<std::map<void*, MTR::RND::Text* >> upd;};
 
   class SpriteGroupUpdate : public UpdateType{public:
   std::vector<std::map<void*, MTR::RND::SpriteGroup*>>::iterator it;
@@ -43,13 +43,13 @@ namespace MTR{
     LayerUpdate      * updLayer       = new LayerUpdate      ();
     SuperGroupUpdate * updSuperGroup  = new SuperGroupUpdate ();
     SpriteGroupUpdate* updSpriteGroup = new SpriteGroupUpdate();
-    SpriteUpdate     * updSprite      = new SpriteUpdate     ();
-    TextUpdate       * updText        = new TextUpdate       ();
+    // SpriteUpdate     * updSprite      = new SpriteUpdate     ();
+    // TextUpdate       * updText        = new TextUpdate       ();
 
     RenderUpdates(int layers){
-      updLayer      ->upd = std::vector<                MTR::RND::Layer       >(layers);
-      updText       ->upd = std::vector<std::map<void*, MTR::RND::Text*       >>(layers);
-      updSprite     ->upd = std::vector<std::map<void*, MTR::RND::Image*      >>(layers);
+      updLayer      ->upd = std::vector<                MTR::RND::Layer       > (layers, MTR::RND::Layer());
+      // updText       ->upd = std::vector<std::map<void*, MTR::RND::Text*       >>(layers);
+      // updSprite     ->upd = std::vector<std::map<void*, MTR::RND::Image*      >>(layers);
       updSpriteGroup->upd = std::vector<std::map<void*, MTR::RND::SpriteGroup*>>(layers);
       updSuperGroup ->upd =             std::map<void*, MTR::RND::SuperGroup* > ();
     };
@@ -59,8 +59,8 @@ namespace MTR{
       delete updLayer      ;
       delete updSuperGroup ;
       delete updSpriteGroup;
-      delete updSprite     ;
-      delete updText       ;
+      // delete updSprite     ;
+      // delete updText       ;
     }
 
     // protected:
@@ -68,8 +68,8 @@ namespace MTR{
     public:
     enum updType{
       LAYER,
-      SPRITE,
-      TEXT,
+      // SPRITE,
+      // TEXT,
       SPRITEGROUP,
       SUPERGROUP,
       LENGTH

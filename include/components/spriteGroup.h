@@ -13,6 +13,7 @@
 namespace MTR{
 
   namespace RND{
+    // class Window;
 
     class SpriteGroup : public SuperGroup {
       public:
@@ -22,24 +23,34 @@ namespace MTR{
 
       static void deepCopy(SpriteGroup* source, SpriteGroup* target);
 
-      inline SpriteGroup(){};
+      inline SpriteGroup(std::vector<std::string> pwindows):
+      SuperGroup(pwindows)
+      {};
 
-      static SpriteGroup gimmesG(){
-        return SpriteGroup();
-      }
+      // static SpriteGroup gimmesG(){
+      //   return SpriteGroup();
+      // }
 
       // inline SpriteGroup(std::map<void*, MTR::RND::Image> sprites){
       //   updateSprites(sprites);
       // };
+      std::vector<MTR::RND::Image*> sprites;
 
       inline ~SpriteGroup(){
-        std::map<void*, MTR::RND::Image*>::iterator it;
-        for(it = sprites.begin(); it != sprites.end(); it++){
-          it->second->pendingErase = true;
-          it->second->update(it->second) ;
-          // delete sprites[i];
+        // UPdATE PSRIGORUP!?
+        this->pendingErase = true;
+        this->update(this);
+        for(int i = 0; i < this->sprites.size(); i++){
+          delete sprites[i];
         }
-      };
+        this->sprites.clear();
+      // std::map<void*, MTR::RND::Image*>::iterator it;
+      // for(it = spritePTRs.begin(); it != spritePTRs.end(); it++){
+      //   it->second->pendingErase = true;
+      //   it->second->update(it->second) ;
+          // delete spritePTRs[i];
+      }
+      
 
       static void update(SpriteGroup* group);
 
@@ -50,15 +61,19 @@ namespace MTR{
       //   }
       //   // setUpdate();
       // }
+
       bool checkSanity();
       void refreshBounds(Renderable* rend);
 
       void placeSprites(std::vector<MTR::RND::Image*> spr);
       void placeSprite(MTR::RND::Image* spr);
-      void placeSprite(void* ptr, MTR::RND::Image* spr);
+      // void placeSprite(void* ptr, MTR::RND::Image* spr);
       
+      void removeSprite (MTR::RND::Image* spr);
+      void removeSprites(std::vector<MTR::RND::Image*> spr);
 
-      std::map<void*, MTR::RND::Image*> sprites;
+
+      std::map<void*, MTR::RND::Image*> spritePTRs;
       // protected:
       // bool initialized = false;
     };

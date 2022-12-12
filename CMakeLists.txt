@@ -48,12 +48,12 @@ file(GLOB NESTEDHEADERS  ${PROJECT_SOURCE_DIR}/include/*/*.h)
 
 set(SDL2_DIR       ${PROJECT_SOURCE_DIR}/dependencies/SDL2-${SDL2_VERSION}/cmake/)
 set(SDL2_image_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_image-${SDL2_IMAGE_VERSION}/cmake/)
-set(SDL2_mixer_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_mixer-${SDL2_MIXER_VERSION}/cmake/)
+# set(SDL2_mixer_DIR ${PROJECT_SOURCE_DIR}/dependencies/SDL2_mixer-${SDL2_MIXER_VERSION}/cmake/)
 set(SDL2_ttf_DIR   ${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/cmake/)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
-find_package(SDL2_mixer REQUIRED)
+# find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 # set(CMAKE_CXX_STANDARD_LIBRARIES "-lmingw32 -lSDL2main -lSDL2 ${CMAKE_CXX_STANDARD_LIBRARIES}")
@@ -74,11 +74,11 @@ if(NOT STATIC_BUILD)
 	file(COPY ${PROJECT_SOURCE_DIR}/dependencies/SDL2_ttf-${SDL2_TTF_VERSION}/${sdl_p_folder}/bin/SDL2_ttf.dll DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
 
 	add_library(MTR ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS} ${NESTEDHEADERS})
-	# target_link_libraries(MTR 
-	# SDL2::SDL2 
-	# SDL2_image::SDL2_image 
+	target_link_libraries(MTR 
+	SDL2::SDL2 
+	SDL2_image::SDL2_image 
 	# # SDL2_mixer::SDL2_mixer 
-	# SDL2_ttf::SDL2_ttf)
+	SDL2_ttf::SDL2_ttf)
 else()
 	add_library(MTR STATIC ${SOURCES} ${NESTEDSOURCES} ${NESTEDSOURCES2} ${HEADERS} ${NESTEDHEADERS})
 	#SDL2_ttf doesn't behave when static

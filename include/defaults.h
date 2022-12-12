@@ -6,7 +6,7 @@
 namespace MTR{
 
   namespace Defaults {
-    std::string placeHolder = "asssets/gen_specialchest.png";
+    inline std::string placeHolder = "asssets/gen_specialchest.png";
 
   }
 

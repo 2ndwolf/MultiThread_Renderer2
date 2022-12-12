@@ -136,10 +136,10 @@ namespace MTR{
     SDL_RenderClear(context);
     RenderUpdates rB = buffer.readBuffer;
 
-    std::map<void*, MTR::RND::Layer      >::iterator Lit;
+    std::map<void*, MTR::RND::Layer       >::iterator Lit;
     // std::map<void*, FK::AT ::SuperGroup  >::iterator SupGit;
-    std::map<void*, MTR::RND::SpriteGroup>::iterator SpGit;
-    std::map<void*, MTR::RND::Image*     >::iterator Iit;
+    std::map<void*, MTR::RND::SpriteGroup*>::iterator SpGit;
+    std::map<void*, MTR::RND::Image      *>::iterator Iit;
 
     MTR::RND::Layer cLayer;
     void* cSupG;
@@ -156,83 +156,84 @@ namespace MTR{
 
       SpGit  = rB.updSpriteGroup->upd[layer].begin();
       while(
-          SpGit != rB.updSpriteGroup->upd[layer].end  ()/* ; SpGit++ */){
-        if(rB.updSpriteGroup->upd[layer][SpGit->first].pendingErase){
-          rB.updSpriteGroup->upd[layer].erase(SpGit->first);
+          SpGit != rB.updSpriteGroup->upd[layer].end()){
+        // REVIEW THIS
+        if(rB.updSpriteGroup->upd[layer][SpGit->first]->pendingErase){
+          std::map<void*, MTR::RND::Image*>::iterator fIT;
+          for(fIT = rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.begin();
+          fIT != rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.end();
+          fIT++) delete fIT->second;
+          rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.clear();
+
+          delete SpGit->second;
+          SpGit = rB.updSpriteGroup->upd[layer].erase(SpGit);
+
           continue;
         }
 
-        if(rB.updSpriteGroup->upd[layer][SpGit->first].hidden) {
+        if(rB.updSpriteGroup->upd[layer][SpGit->first]->hidden) {
           SpGit++;
           continue;
         }
         // cSpG  = Rit->second.ownerGroup;
         Vec2 superOffsets = {0,0};
-        cSupG = rB.updSuperGroup->upd[SpGit->first].ownerGroup;
+        cSupG = rB.updSuperGroup->upd[SpGit->first]->ownerGroup;
 
         while(cSupG != nullptr){
-          if(rB.updSuperGroup->upd[cSupG].hidden) break;
-          superOffsets.x += rB.updSuperGroup->upd[cSupG].bounds.pos.x;
-          superOffsets.y += rB.updSuperGroup->upd[cSupG].bounds.pos.y;
-          cSupG           = rB.updSuperGroup->upd[cSupG].ownerGroup;
+          if(rB.updSuperGroup->upd[cSupG]->hidden) break;
+          superOffsets.x += rB.updSuperGroup->upd[cSupG]->bounds.pos.x;
+          superOffsets.y += rB.updSuperGroup->upd[cSupG]->bounds.pos.y;
+          cSupG           = rB.updSuperGroup->upd[cSupG]->ownerGroup;
         }
-        if(rB.updSuperGroup->upd[cSupG].hidden){
+        if(rB.updSuperGroup->upd[cSupG]->hidden){
           SpGit++;
           continue;
         } 
 
 
-        Iit  = rB.updSpriteGroup->upd[layer][SpGit->first].sprites.begin();
+        Iit  = rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.begin();
         while(
-          Iit != rB.updSpriteGroup->upd[layer][SpGit->first].sprites.end  ()
+          Iit != rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.end  ()
           // ;Iit++
           ){
           if(Iit->second->pendingErase){
             // for(SDL_Texture* tex : )
-            SDL_DestroyTexture(rB.updSpriteGroup->upd[layer][SpGit->first].sprites[Iit->first]->textures[name]);
+            SDL_DestroyTexture(rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs[Iit->first]->textures[name]);
             // }
-            rB.updSpriteGroup->upd[layer][SpGit->first].sprites.erase(Iit->first);
+            rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.erase(Iit->first);
             continue;
           }
           if(Iit->second->layer != layer){
-            rB.updSpriteGroup->upd[layer][SpGit->first].sprites.erase(Iit->first);
+            rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.erase(Iit->first);
             continue;
           }
           if(Iit->second->hidden) {
             Iit++;
             continue;
           }
-          // if(Iit->second->texQueued){
-          //   Iit->second->setTexture(SDL_CreateTextureFromSurface(context, FKORE::surfaces[Iit->second->fileName].sur));
-          //   Bounds area = Iit->second->area;
-          //   if(area.box.width == 0 || area.box.height == 0){
-          //     SDL_QueryTexture(Iit->second->getTexture(), NULL, NULL, &area.box.width, &area.box.height);
-          //     Iit->second->setCrop(area);
-          //   }
-          //   Iit->second->texQueued = false;
-          // }
 
           Vec2 screenPosCam = {0,0};
-          if(!rB.updSpriteGroup->upd[layer][SpGit->first].ignoreCamera){
+          if(!rB.updSpriteGroup->upd[layer][SpGit->first]->ignoreCamera){
             screenPosCam = 
-            {rB.updSpriteGroup->upd[layer][SpGit->first].worldPos.x - camPos.x,
-             rB.updSpriteGroup->upd[layer][SpGit->first].worldPos.y - camPos.y};
+            {rB.updSpriteGroup->upd[layer][SpGit->first]->worldPos.x - camPos.x,
+             rB.updSpriteGroup->upd[layer][SpGit->first]->worldPos.y - camPos.y};
           }
 
           Vec2 newPos = {
-            cLayer.offset.x                                         +
-            Iit->second->bounds.pos.x                               + 
-            rB.updSuperGroup->upd[SpGit->first].bounds.pos.x +
-            superOffsets.x                                          +
+            cLayer.offset.x                                   +
+            Iit->second->bounds.pos.x                         + 
+            rB.updSuperGroup->upd[SpGit->first]->bounds.pos.x +
+            superOffsets.x                                    +
             screenPosCam.x,
 
-            cLayer.offset.y                                          +
-            Iit->second->bounds.pos.y                                + 
-            rB.updSuperGroup->upd[SpGit->first].bounds.pos.y  +
-            superOffsets.y                                           +
+            cLayer.offset.y                                   +
+            Iit->second->bounds.pos.y                         + 
+            rB.updSuperGroup->upd[SpGit->first]->bounds.pos.y +
+            superOffsets.y                                    +
             screenPosCam.y
             };
           
+          // Crude culling
           if((newPos.x + Iit->second->bounds.box.width  < 0 &&
               newPos.y + Iit->second->bounds.box.height < 0) ||
               (newPos.x > bounds.box.width && newPos.y > bounds.box.height)){

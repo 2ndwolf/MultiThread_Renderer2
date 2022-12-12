@@ -54,7 +54,44 @@
 
 int MTR_init();
 int MTR_close();
+
+
+typedef struct Vec2{
+  int x = 0, y = 0;
+
+  bool operator==(const Vec2& comp){
+    return x == comp.x && y == comp.y;
+  }
+} Vec2;
+
+typedef struct Box{
+  int width = 0, height = 0;
+
+  bool operator==(const Box& comp){
+    return width == comp.width && height == comp.height;
+  }
+  
+} Box;
+
+typedef struct Bounds{
+  Vec2 pos;
+  Box box;
+
+  bool operator==(const Bounds& comp){
+    return box == comp.box && pos == comp.pos;
+  } 
+
+} Bounds;
+
+
 namespace MTR{
+
+  struct Color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+  };
 
   namespace SUR{
     struct SDLSurface{
@@ -72,7 +109,7 @@ namespace MTR{
     struct Font{
       // std::string fileName;
       // TTF_Font* font;
-      // int size;
+      // int size; 
 
       // ~Font(){
       //   TTF_CloseFont(font);
@@ -81,7 +118,7 @@ namespace MTR{
     };
   }
 
-  class Window{
+  class Window{ public:
     static std::string newWindow(
       int layerCount,
       Box windowSize,
@@ -101,41 +138,19 @@ namespace MTR{
 
   };
 
+  namespace RND{
+    class Image      ;
+    class SuperGroup ;
+    class SpriteGroup;
+    class Text;
+  }
+
   RND::Image* createImage(std::string fileName, Vec2 offset, std::vector<std::string> windows);
-  RND::Text* createText(SUR::Font font, std::string text,Vec2 offset, std::vector<std::string> windows, Color color);
-  struct Color {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t a;
-  };
+  RND::Text*  createText(SUR::Font font, std::string text,Vec2 offset, std::vector<std::string> windows, Color color);
+  RND::Image* createSprite(std::string fileName, Vec2 offset, Bounds crop, int layer, std::vector<std::string> windows);
 
-  typedef struct Vec2{
-    int x = 0, y = 0;
 
-    bool operator==(const Vec2& comp){
-      return x == comp.x && y == comp.y;
-    }
-  } Vec2;
 
-  typedef struct Box{
-    int width = 0, height = 0;
-
-    bool operator==(const Box& comp){
-      return width == comp.width && height == comp.height;
-    }
-    
-  } Box;
-
-  typedef struct Bounds{
-    Vec2 pos;
-    Box box;
-
-    bool operator==(const Bounds& comp){
-      return box == comp.box && pos == comp.pos;
-    } 
-
-  } Bounds;
 
   namespace ENUM{
     enum Flip{
@@ -161,7 +176,7 @@ namespace MTR{
       void update(Layer layer);
     };
 
-    class Renderable{
+    class Renderable{ public:
       std::vector<std::string> windows = {};
       Bounds     bounds       = {INT_MIN, INT_MIN, 0, 0};
       bool         hidden       = false             ;
@@ -176,7 +191,7 @@ namespace MTR{
     };
 
 
-    class Image : public Renderable{
+    class Image : public Renderable{ public:
       void setSurface(std::string fileName);
       static void update(Image* image);
 
@@ -190,11 +205,17 @@ namespace MTR{
       std::string fileName;
     };
 
-    class SpriteGroup: public Renderable{
+    class SuperGroup : public Renderable { public:
+      SuperGroup(std::vector<std::string> windows);
+      static void update(SuperGroup* group);
+      void  refreshBounds(Renderable* rend);
+    };
+
+    class SpriteGroup: public SuperGroup{ public:
       int  layer       ;
       bool ignoreCamera;
       Vec2 worldPos    ;
-
+      SpriteGroup(std::vector<std::string> windows);
       static void update(SpriteGroup* group);
 
       void refreshBounds(Renderable* rend);
@@ -205,18 +226,13 @@ namespace MTR{
 
 
     };
-
-    class SuperGroup : public Renderable {
-      static void update(SuperGroup* group);
-      void  refreshBounds(Renderable* rend);
-    };
-
-    class Text : public Image {
-      void Text::setSurface    (std::string newText);
-      inline void Text::setText(std::string newText){setSurface(newText);};
+    
+    class Text : public Image { public:
+      void setSurface    (std::string newText);
+      inline void setText(std::string newText){setSurface(newText);};
 
       static void update(Text* image);
-      static SUR::Font Text::loadFont(std::string fileName, int size);
+      static SUR::Font loadFont(std::string fileName, int size);
 
       SUR::Font font;
       int size;

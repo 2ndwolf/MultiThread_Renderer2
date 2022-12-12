@@ -26,97 +26,100 @@ namespace MTR{
             //     target->updLayer->upd[layer].emplace(it->first, it->second);
             // }
             target->updLayer->upd[layer] = source->updLayer->upd[layer];
+
+            // source->updLayer->upd.erase(layer);
             // source->updLayer->upd[layer] 
           }
           break;
-          case RenderUpdates::updType::SPRITE:
-          {
-            std::map<void*, MTR::RND::Image*      >::iterator it;
-            for(it  = source->updSprite->upd[layer].begin();
-                it != source->updSprite->upd[layer].end  (); it++){
+// {          // case RenderUpdates::updType::SPRITE:
+//           // {
+//           //   std::map<void*, MTR::RND::Image*      >::iterator it;
+//           //   for(it  = source->updSprite->upd[layer].begin();
+//           //       it != source->updSprite->upd[layer].end  (); it++){
 
-                MTR::RND::Image* img = new MTR::RND::Image();
-                MTR::RND::Image::deepCopy(it->second, img);
+//           //       MTR::RND::Image* img = new MTR::RND::Image();
+//           //       MTR::RND::Image::deepCopy(it->second, img);
 
-                if(
-                  target->updSpriteGroup->upd[layer].find((void*)&(it->second->ownerGroup))
-                  == target->updSpriteGroup->upd[layer].end())
-                  {
-                  target->updSpriteGroup->upd[layer].
-                  emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
-                  }
+//           //       if(
+//           //         target->updSpriteGroup->upd[layer].find((void*)&(it->second->ownerGroup))
+//           //         == target->updSpriteGroup->upd[layer].end())
+//           //         {
+//           //         target->updSpriteGroup->upd[layer].
+//           //         emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
+//           //         }
 
-                if(
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites.end())
+//           //       if(
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites.end())
 
-                  { delete
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites[it->first];
-                  }
-
-
-                target->updSpriteGroup->upd[layer]
-                [(void*)&(it->second->ownerGroup)]->
-                placeSprite(it->first, img);
-
-            }
-            source->updSprite->upd[layer].clear();
-          }
-          break;
-          case RenderUpdates::updType::TEXT:
-          {
-            std::map<void*, MTR::RND::Text*      >::iterator it;
-            for(it  = source->updText->upd[layer].begin();
-                it != source->updText->upd[layer].end  (); it++){
-
-                MTR::RND::Text* txt = new MTR::RND::Text();
-                MTR::RND::Text::deepCopy(it->second, txt);
-
-                if(
-                  target->updSpriteGroup->upd[layer].find((void*)&(it->second->ownerGroup))
-                  == target->updSpriteGroup->upd[layer].end())
-                  {
-                  target->updSpriteGroup->upd[layer].
-                  emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
-                  }
-
-                if(
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites.end())
-
-                  { delete
-                  target->updSpriteGroup->upd[layer]
-                  [(void*)&(it->second->ownerGroup)]->sprites[it->first];
-                  }
+//           //         { delete
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites[it->first];
+//           //         }
 
 
-                target->updSpriteGroup->upd[layer]
-                [(void*)&(it->second->ownerGroup)]->
-                placeSprite(it->first, txt);
+//           //       target->updSpriteGroup->upd[layer]
+//           //       [(void*)&(it->second->ownerGroup)]->
+//           //       placeSprite(it->first, img);
+
+//           //   }
+//           //   source->updSprite->upd[layer].clear();
+//           // }
+//           // break;
+//           // case RenderUpdates::updType::TEXT:
+//           // {
+//           //   std::map<void*, MTR::RND::Text*      >::iterator it;
+//           //   for(it  = source->updText->upd[layer].begin();
+//           //       it != source->updText->upd[layer].end  (); it++){
+
+//           //       MTR::RND::Text* txt = new MTR::RND::Text();
+//           //       MTR::RND::Text::deepCopy(it->second, txt);
+
+//           //       if(
+//           //         target->updSpriteGroup->upd[layer].find((void*)&(it->second->ownerGroup))
+//           //         == target->updSpriteGroup->upd[layer].end())
+//           //         {
+//           //         target->updSpriteGroup->upd[layer].
+//           //         emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
+//           //         }
+
+//           //       if(
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites.end())
+
+//           //         { delete
+//           //         target->updSpriteGroup->upd[layer]
+//           //         [(void*)&(it->second->ownerGroup)]->sprites[it->first];
+//           //         }
 
 
-                // target->updSpriteGroup->upd[layer]
-                // [(void*)&(it->second.ownerGroup)].
-                // placeSprite(it->first, &(it->second));
+//           //       target->updSpriteGroup->upd[layer]
+//           // //       [(void*)&(it->second->ownerGroup)]->
+//           //       placeSprite(it->first, txt);
 
-            }
-            source->updText->upd[layer].clear();
-          }
 
-          break;
+//           //       // target->updSpriteGroup->upd[layer]
+//           //       // [(void*)&(it->second.ownerGroup)].
+//           //       // placeSprite(it->first, &(it->second));
+
+//           //   }
+//           //   source->updText->upd[layer].clear();
+//           // }
+//           // break;}
           case RenderUpdates::updType::SPRITEGROUP:
           { 
             std::map<void*, MTR::RND::SpriteGroup*      >::iterator it;
             for(it  = source->updSpriteGroup->upd[layer].begin();
                 it != source->updSpriteGroup->upd[layer].end()  ; it++){
-                MTR::RND::SpriteGroup* sG = new MTR::RND::SpriteGroup();
+                MTR::RND::SpriteGroup* sG = new MTR::RND::SpriteGroup(
+                  it->second->windows
+                );
                 MTR::RND::SpriteGroup::deepCopy(it->second, sG);
-                sG->sprites = target->updSpriteGroup->upd[layer][it->first]->sprites;
+                // sG->sprites = target->updSpriteGroup->upd[layer][it->first]->sprites;
 
                 if(
                   target->updSpriteGroup->upd[layer].find(it->first) !=
@@ -127,7 +130,10 @@ namespace MTR{
 
                 target->updSpriteGroup->upd[layer][it->first] = sG;
 
+                delete source->updSpriteGroup->upd[layer][it->first];
+
             }
+
             source->updSpriteGroup->upd[layer].clear();
           }
           break;
@@ -137,7 +143,9 @@ namespace MTR{
             for(it  = source->updSuperGroup->upd.begin();
                 it != source->updSuperGroup->upd.end()  ; it++){
 
-                MTR::RND::SuperGroup* supG = new MTR::RND::SuperGroup();
+                MTR::RND::SuperGroup* supG = new MTR::RND::SuperGroup(
+                  it->second->windows
+                );
                 MTR::RND::SuperGroup::deepCopy(it->second, supG);
 
                 if(
@@ -148,6 +156,8 @@ namespace MTR{
                   }
 
                 target->updSuperGroup->upd  [it->first] = supG;
+
+                delete source->updSpriteGroup->upd[layer][it->first];
 
             }
 

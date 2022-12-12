@@ -16,8 +16,8 @@ namespace MTR{
     class Image : public Renderable {
       public:
       // overloaded by Text
-      void setSurface(std::string fileName);
-      static void update(Image* image);
+      void setSurface(std::string fileName, bool fromSpriteSheet = false);
+      // static void update(Image* image);
 
       static void group(SpriteGroup* sG, std::vector<Image*> imgs);
       void group(SpriteGroup* sG);
@@ -39,8 +39,8 @@ namespace MTR{
 
       void setCrop(Bounds crop);
 
-      // ~Image(){
-      //   // delete texture; <---- do this in display loop so it doesn't DIE
+      // ~Image(){;;;
+            //   // delete texture; <---- do this in display loop so it doesn't DIE
       // }
 
       std::map<std::string, SDL_Texture*> textures;

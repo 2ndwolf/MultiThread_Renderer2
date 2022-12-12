@@ -8,7 +8,7 @@ namespace MTR{
   class Identifier{
     private:
       // static MTR::ID currtID;
-      static MTR::ID textID;
+      inline static MTR::ID textID;
     public:
       // static MTR::ID newID(){
       //   currtID++;

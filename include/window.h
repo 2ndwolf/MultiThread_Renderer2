@@ -64,7 +64,7 @@ namespace MTR{
 
     public:
     std::mutex mutex;
-    static std::mutex multimutex;
+    inline static std::mutex multimutex;
     Vec2 camPos = {0,0};
     MTR::Buffer buffer;
     void display();

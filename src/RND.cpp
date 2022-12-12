@@ -1,4 +1,6 @@
 #include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #include "defaults.h"
 #include "identifier.h"
@@ -12,9 +14,8 @@
 #include "surfaces.h"
 
 namespace MTR{
-  namespace RND{
-
-    void loadSurface(std::string fileName, bool keepImgInMemory = false){
+  namespace SUR{
+    void loadSurface(std::string fileName, bool keepImgInMemory){
       if(!SUR::surfaces.count(fileName)){
         SUR::SDLSurface newSur;
         newSur.sur = IMG_Load(fileName.c_str());
@@ -32,8 +33,11 @@ namespace MTR{
       }
 
     }
+  }
+  namespace RND{
 
-    void Image::setSurface(std::string fileName){
+
+    void Image::setSurface(std::string fileName, bool fromSpriteSheet){
       if(SUR::surfaces[this->fileName].useCount != -1){
         SUR::surfaces[this->fileName].useCount -= 1;
         if(SUR::surfaces[this->fileName].useCount == 0) SUR::surfaces.erase(this->fileName);
@@ -49,7 +53,9 @@ namespace MTR{
 
       // TODO :: std::map<std::string, Bounds> areaS;
       // textures[windows[0]]->
-      SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
+      if(!fromSpriteSheet){
+        SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
+      }
     };
 
 
@@ -97,53 +103,73 @@ namespace MTR{
       return SUR::fonts[fontName];
     }
 
-    // UPDATE OVERLOADS
-    void Image::update(Image* image){
-      if(image->checkSanity()){
-        for(int i = 0; i < image->windows.size(); i++){
-          Window* win = Window::getWindow(image->windows[i]);
+    // UPDATE OVERLOADS (not in need to update, these are literal overloads for the update function!)
+    // void Image::update(Image* image){
+    //   if(image->checkSanity()){
+    //     for(int i = 0; i < image->windows.size(); i++){
+    //       Window* win = Window::getWindow(image->windows[i]);
 
-          win->buffer.writeBuffer.updSprite->upd
-          [win->clampLayerIndex(image->layer)]
-          .emplace((void*)&image, *image);
-        }
-      }
-    }
+    //       win->buffer.writeBuffer.updSprite->upd
+    //       [win->clampLayerIndex(image->layer)]
+    //       .emplace((void*)&image, *image);
+    //     }
+    //   }
+    // }
 
     void SpriteGroup::update(SpriteGroup* group){
       if(group->checkSanity()){
+        SpriteGroup* tgt = new SpriteGroup(group->windows);
+        SpriteGroup::deepCopy(group, tgt);
+
         for(int i = 0; i < group->windows.size(); i++){
           Window* win = Window::getWindow(group->windows[i]);
 
+          if(
+            win->buffer.writeBuffer.updSpriteGroup->upd
+            [win->clampLayerIndex(group->layer)].find((void*)&group) !=
+            win->buffer.writeBuffer.updSpriteGroup->upd
+            [win->clampLayerIndex(group->layer)].end())
+            { delete win->buffer.writeBuffer.updSpriteGroup->upd
+              [win->clampLayerIndex(group->layer)][(void*)&group];
+            }
+
           win->buffer.writeBuffer.updSpriteGroup->upd
           [win->clampLayerIndex(group->layer)]
-          .emplace((void*)&group, *group);
+          .emplace((void*)&group, tgt);
         }
       }
     }
  
     void SuperGroup::update(SuperGroup* group){
       if(group->checkSanity()){
+        SuperGroup* tgt = new SuperGroup(group->windows);
+        SuperGroup::deepCopy(group, tgt);
+
         for(int i = 0; i < group->windows.size(); i++){
-          Window::getWindow(group->windows[i])->
-          buffer.writeBuffer.updSuperGroup->upd
-          .emplace((void*)&group, *group);
+          Window* win = Window::getWindow(group->windows[i]);
+
+          if(win->buffer.writeBuffer.updSuperGroup->upd.find((void*)&group) !=
+             win->buffer.writeBuffer.updSuperGroup->upd.end())
+             {delete win->buffer.writeBuffer.updSuperGroup->upd[(void*)&group];
+             }
+          win->buffer.writeBuffer.updSuperGroup->upd
+          .emplace((void*)&group, tgt);
         }
       }
     }
 
-    void Text::update(Text* image){
-      if(image->checkSanity()){
+    // void Text::update(Text* image){
+    //   if(image->checkSanity()){
 
-        for(int i = 0; i < image->windows.size(); i++){
-          Window* win = Window::getWindow(image->windows[i]);
+    //     for(int i = 0; i < image->windows.size(); i++){
+    //       Window* win = Window::getWindow(image->windows[i]);
 
-          win->buffer.writeBuffer.updSpriteGroup->upd
-          [win->clampLayerIndex(image->layer)]
-          .emplace((void*)&image, *image);
-        }
-      }
-    }
+    //       win->buffer.writeBuffer.updSpriteGroup->upd
+    //       [win->clampLayerIndex(image->layer)]
+    //       .emplace((void*)&image, *image);
+    //     }
+    //   }
+    // }
 
     void Layer::update(Layer layer){
       if(layer.windows.size() != 0){
@@ -157,10 +183,15 @@ namespace MTR{
     // MANIPULATION
     void Image::setCrop(Bounds crop){
         area = crop;
+
+        bounds.box.width  = crop.box.width ;
+        bounds.box.height = crop.box.height;
+
         srcRect.w = crop.box.width;
         srcRect.h = crop.box.height;
         srcRect.x = crop.pos.x;
         srcRect.y = crop.pos.y;
+
         tgtRect.w = crop.box.width;
         tgtRect.h = crop.box.height;
       }
@@ -238,18 +269,46 @@ namespace MTR{
       }
     }
     void SpriteGroup::placeSprites(std::vector<MTR::RND::Image*> spr){
+      sprites.insert(sprites.end(), spr.begin(), spr.end());
       for(int i = 0; i < spr.size(); i++){
-        placeSprite(spr[i]);
+        MTR::RND::Image* img = new MTR::RND::Image();
+        MTR::RND::Image::deepCopy(spr[i], img);
+
+        if(spritePTRs.find((void*)&spr[i]) !=
+        spritePTRs.end()) delete spritePTRs[(void*)&spr[i]];
+
+        delete spritePTRs[(void*)&spr[i]];
+
+        spritePTRs.emplace((void*)&spr, img);
       }
     }
 
     void SpriteGroup::placeSprite(MTR::RND::Image* spr){
-      sprites[&spr] = spr;
+      sprites.push_back(spr);
+      MTR::RND::Image* img = new MTR::RND::Image();
+      MTR::RND::Image::deepCopy(spr, img);
+
+      if(spritePTRs.find((void*)&spr) !=
+        spritePTRs.end()) delete spritePTRs[(void*)&spr];
+
+      spritePTRs.emplace((void*)&spr, img);
     }
     
-    void SpriteGroup::placeSprite(void* ptr, MTR::RND::Image* spr){
-      sprites.emplace(ptr, spr);
-    }    
+    void SpriteGroup::removeSprite(MTR::RND::Image* spr){
+      sprites.erase(std::remove(sprites.begin(), sprites.end(), spr), sprites.end());
+      spritePTRs[(void*)&(spr)]->pendingErase = true;
+    }
+
+    void SpriteGroup::removeSprites(std::vector<MTR::RND::Image*> spr){
+      for(int i = 0; i < spr.size(); i++){
+        sprites.erase(std::remove(sprites.begin(), sprites.end(), spr[i]), sprites.end());
+        spritePTRs[(void*)&(spr[i])]->pendingErase = true;
+      }
+    }
+
+    // void SpriteGroup::placeSprite(void* ptr, MTR::RND::Image* spr){
+    //   sprites.emplace(ptr, spr);
+    // }    
 
     void SuperGroup::refreshBounds(Renderable* rend){
       // Vec2 minOffset = {INT_MAX,INT_MAX};
@@ -297,6 +356,7 @@ namespace MTR{
       target->layer        = source->layer;
       target->ignoreCamera = source->ignoreCamera;
       target->worldPos     = source->worldPos;
+      target->spritePTRs   = source->spritePTRs;
     }
 
 

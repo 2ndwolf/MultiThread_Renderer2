@@ -21,6 +21,9 @@ namespace MTR{
 
     img->setSurface(fileName);
 
+    img->bounds.box.width  = img->area.box.width ;
+    img->bounds.box.height = img->area.box.height;
+
     img->srcRect.x = img->area.pos.x;
     img->srcRect.y = img->area.pos.y;
     img->srcRect.w = img->area.box.width;
@@ -29,7 +32,27 @@ namespace MTR{
     img->tgtRect.w = img->area.box.width;
     img->tgtRect.h = img->area.box.height;
 
-    RND::Image::update(img);
+    // RND::Image::update(img);
+
+    return img;
+  }
+
+  RND::Image* createSprite(std::string fileName,
+  Vec2 offset,
+  Bounds crop,
+  int layer,
+  std::vector<std::string> windows){
+    RND::Image* img = new RND::Image();
+
+    img->windows    = windows;
+    img->bounds.pos = offset ;
+    img->layer      = layer  ;
+
+    img->setSurface(fileName, true);
+
+    img->setCrop(crop);
+
+    // RND::Image::update(img);
 
     return img;
   }
@@ -61,7 +84,7 @@ namespace MTR{
     txt->tgtRect.h = txt->area.box.height;
 
 
-    RND::Text::update(txt);
+    // RND::Text::update(txt);
 
     return txt;
 
