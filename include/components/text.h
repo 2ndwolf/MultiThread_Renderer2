@@ -17,11 +17,13 @@ namespace MTR{
     class Text : public Image {
       public:
       // Image overload
-      void setSurface (std::string newText);
-      void setText    (std::string newText);
+      void setSurface (const std::string& newText);
+      void setText    (const std::string& newText);
 
       // Renderable overload
-      // static void update(Text* image);
+      Text(std::vector<std::string> pwindows):
+      Image(pwindows)
+      {};
 
       static void deepCopy(Text* source, Text* target);
       // std::string text;
@@ -29,7 +31,7 @@ namespace MTR{
       int size;
       Color textColor;
 
-      static SUR::Font loadFont(std::string fileName, int size);
+      static SUR::Font loadFont(const std::string& fileName, int size);
       // private:
     };
   }

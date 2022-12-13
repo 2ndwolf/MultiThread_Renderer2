@@ -14,7 +14,7 @@ namespace MTR{
 
     class SuperGroup : public Renderable {
       public:
-      inline SuperGroup(std::vector<std::string> pwindows):
+      SuperGroup(std::vector<std::string> pwindows):
       Renderable(pwindows)
       {};
 

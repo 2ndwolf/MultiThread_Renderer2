@@ -6,15 +6,15 @@
 
 #include "primitives.h"
 // #include "window.h"
-
+#include "renderable.h"
 
 namespace MTR{
   namespace RND{
-    struct Layer{
+    struct Layer/* : public Renderable */{
       // inline Layer(){};
 
       int layerNumber = 0;
-      std::vector<std::string> windows = std::vector<std::string>();
+      std::vector<std::string> windows;
       Vec2 offset = {0,0};
       bool hidden = false;
 

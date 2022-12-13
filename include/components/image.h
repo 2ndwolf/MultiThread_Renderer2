@@ -16,7 +16,7 @@ namespace MTR{
     class Image : public Renderable {
       public:
       // overloaded by Text
-      void setSurface(std::string fileName, bool fromSpriteSheet = false);
+      void setSurface(const std::string& fileName, bool fromSpriteSheet = false);
       // static void update(Image* image);
 
       static void group(SpriteGroup* sG, std::vector<Image*> imgs);
@@ -27,6 +27,9 @@ namespace MTR{
       //     la
       //   }
       // }
+      Image(std::vector<std::string> pwindows):
+      Renderable(pwindows)
+      {};
 
       Bounds area = {0,0,0,0};
       int layer = 0;

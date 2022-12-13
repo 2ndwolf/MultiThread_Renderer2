@@ -23,7 +23,7 @@ namespace MTR{
 
       static void deepCopy(SpriteGroup* source, SpriteGroup* target);
 
-      inline SpriteGroup(std::vector<std::string> pwindows):
+      SpriteGroup(std::vector<std::string> pwindows):
       SuperGroup(pwindows)
       {};
 
@@ -39,16 +39,17 @@ namespace MTR{
       inline ~SpriteGroup(){
         // UPdATE PSRIGORUP!?
         this->pendingErase = true;
-        this->update(this);
-        for(int i = 0; i < this->sprites.size(); i++){
-          delete sprites[i];
-        }
+        // for(int i = 0; i < this->sprites.size(); i++){
+        //   delete sprites[i];
+        // }
         this->sprites.clear();
-      // std::map<void*, MTR::RND::Image*>::iterator it;
-      // for(it = spritePTRs.begin(); it != spritePTRs.end(); it++){
-      //   it->second->pendingErase = true;
-      //   it->second->update(it->second) ;
-          // delete spritePTRs[i];
+
+        // std::map<void*, MTR::RND::Image*>::iterator it;
+        // for(it = spritePTRs.begin(); it != spritePTRs.end(); it++){
+        //     delete it->second;
+        // }
+        this->spritePTRs.clear();
+        // this->update(this);
       }
       
 

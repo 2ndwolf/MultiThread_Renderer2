@@ -44,8 +44,8 @@
 
 
 
-#ifndef _MTR_LIBRARY_h_
 #define _MTR_LIBRARY_h_
+#ifndef _MTR_LIBRARY_h_
 
 #include <string>
 #include <memory>
@@ -147,7 +147,7 @@ namespace MTR{
 
   RND::Image* createImage(std::string fileName, Vec2 offset, std::vector<std::string> windows);
   RND::Text*  createText(SUR::Font font, std::string text,Vec2 offset, std::vector<std::string> windows, Color color);
-  RND::Image* createSprite(std::string fileName, Vec2 offset, Bounds crop, int layer, std::vector<std::string> windows);
+  RND::Image* createSprite(const std::string& fileName, Vec2 offset, Bounds crop, int layer, std::vector<std::string> windows);
 
 
 
@@ -177,7 +177,7 @@ namespace MTR{
     };
 
     class Renderable{ public:
-      std::vector<std::string> windows = {};
+      std::vector<std::string> windows;
       Bounds     bounds       = {INT_MIN, INT_MIN, 0, 0};
       bool         hidden       = false             ;
       int          angle        = 0                 ;
@@ -206,7 +206,7 @@ namespace MTR{
     };
 
     class SuperGroup : public Renderable { public:
-      SuperGroup(std::vector<std::string> windows);
+      SuperGroup(std::vector<const std::string>& windows);
       static void update(SuperGroup* group);
       void  refreshBounds(Renderable* rend);
     };

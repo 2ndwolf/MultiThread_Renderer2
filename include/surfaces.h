@@ -23,7 +23,7 @@ namespace MTR {
 
     ~SDLSurface(){
       SDL_FreeSurface(sur);
-      delete sur;
+      // delete sur;
     }
   };
 
@@ -40,10 +40,10 @@ namespace MTR {
 
 
 
-  inline std::map<std::string, SDLSurface> surfaces;
+  inline std::map<std::string, SDLSurface> surfaces = std::map<std::string, SDLSurface>();
   inline std::map<std::string, Font> fonts;
 
-  void loadSurface(std::string fileName, bool keepImgInMemory = false);
+  void loadSurface(const std::string& fileName, bool keepImgInMemory = false);
 
   //   void changeSurface(std::string fileN){
   //     if(surfaces[information->fileName].useCount != -1){

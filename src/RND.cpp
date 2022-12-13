@@ -15,15 +15,18 @@
 
 namespace MTR{
   namespace SUR{
-    void loadSurface(std::string fileName, bool keepImgInMemory){
+    void loadSurface(const std::string& fileName, bool keepImgInMemory){
       if(!SUR::surfaces.count(fileName)){
         SUR::SDLSurface newSur;
-        newSur.sur = IMG_Load(fileName.c_str());
-        if(newSur.sur == NULL) newSur.sur = IMG_Load(Defaults::placeHolder.c_str());
+        const char* bob = fileName.c_str();
+        newSur.sur = IMG_Load(bob);
+        if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", IMG_GetError(), NULL); 
+        
+        if(newSur.sur == nullptr) newSur.sur = IMG_Load(Defaults::placeHolder.c_str());
         newSur.fileName = fileName;
         if(keepImgInMemory) newSur.useCount = -1;
         else newSur.useCount = 1;
-        SUR::surfaces.insert({fileName, newSur});
+        SUR::surfaces.emplace(fileName, newSur);
 
       } else if (keepImgInMemory){
         SUR::surfaces[fileName].useCount = -1;
@@ -37,7 +40,7 @@ namespace MTR{
   namespace RND{
 
 
-    void Image::setSurface(std::string fileName, bool fromSpriteSheet){
+    void Image::setSurface(const std::string& fileName, bool fromSpriteSheet){
       if(SUR::surfaces[this->fileName].useCount != -1){
         SUR::surfaces[this->fileName].useCount -= 1;
         if(SUR::surfaces[this->fileName].useCount == 0) SUR::surfaces.erase(this->fileName);
@@ -47,21 +50,27 @@ namespace MTR{
       SUR::loadSurface(fileName);
 
       for(int i = 0; i < windows.size(); i++){
-        textures[windows[i]] = SDL_CreateTextureFromSurface(
-          Window::getWindow(windows[i])->getContext(), SUR::surfaces[fileName].sur);
+        std::string potato = windows[i];
+        std::map<std::string, Window*> BOB = Window::getWindows();
+        Window* fun = BOB[potato];
+        auto fads = fun->getContext();
+
+        auto a = SDL_CreateTextureFromSurface(fun->context, SUR::surfaces[fileName].sur);
+        if(a == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
+        textures.emplace(windows[i],a);
       }
 
       // TODO :: std::map<std::string, Bounds> areaS;
-      // textures[windows[0]]->
+      // textures[windows[]0]->
       if(!fromSpriteSheet){
         SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
       }
     };
 
 
-    void Text::setText (std::string newText){setSurface(newText);};
+    void Text::setText(const std::string& newText){setSurface(newText);};
 
-    void Text::setSurface(std::string newText){
+    void Text::setSurface(const std::string& newText){
       if(SUR::surfaces.count(fileName)) SUR::surfaces.erase(fileName);
 
       SDL_Color color;
@@ -89,7 +98,7 @@ namespace MTR{
       SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
     }
 
-    SUR::Font Text::loadFont(std::string fileName, int size){
+    SUR::Font Text::loadFont(const std::string& fileName, int size){
       std::string fontName = fileName + std::to_string(size);
 
       if(!SUR::fonts.count(fontName)){
@@ -109,7 +118,7 @@ namespace MTR{
     //     for(int i = 0; i < image->windows.size(); i++){
     //       Window* win = Window::getWindow(image->windows[i]);
 
-    //       win->buffer.writeBuffer.updSprite->upd
+    //       win->buffer.writeBuffer.updSprite
     //       [win->clampLayerIndex(image->layer)]
     //       .emplace((void*)&image, *image);
     //     }
@@ -118,22 +127,22 @@ namespace MTR{
 
     void SpriteGroup::update(SpriteGroup* group){
       if(group->checkSanity()){
-        SpriteGroup* tgt = new SpriteGroup(group->windows);
+        SpriteGroup* tgt = new SpriteGroup{group->windows};
         SpriteGroup::deepCopy(group, tgt);
 
         for(int i = 0; i < group->windows.size(); i++){
           Window* win = Window::getWindow(group->windows[i]);
 
           if(
-            win->buffer.writeBuffer.updSpriteGroup->upd
+            win->buffer.writeBuffer.updSpriteGroup
             [win->clampLayerIndex(group->layer)].find((void*)&group) !=
-            win->buffer.writeBuffer.updSpriteGroup->upd
+            win->buffer.writeBuffer.updSpriteGroup
             [win->clampLayerIndex(group->layer)].end())
-            { delete win->buffer.writeBuffer.updSpriteGroup->upd
+            { delete win->buffer.writeBuffer.updSpriteGroup
               [win->clampLayerIndex(group->layer)][(void*)&group];
             }
 
-          win->buffer.writeBuffer.updSpriteGroup->upd
+          win->buffer.writeBuffer.updSpriteGroup
           [win->clampLayerIndex(group->layer)]
           .emplace((void*)&group, tgt);
         }
@@ -148,11 +157,11 @@ namespace MTR{
         for(int i = 0; i < group->windows.size(); i++){
           Window* win = Window::getWindow(group->windows[i]);
 
-          if(win->buffer.writeBuffer.updSuperGroup->upd.find((void*)&group) !=
-             win->buffer.writeBuffer.updSuperGroup->upd.end())
-             {delete win->buffer.writeBuffer.updSuperGroup->upd[(void*)&group];
+          if(win->buffer.writeBuffer.updSuperGroup.find((void*)&group) !=
+             win->buffer.writeBuffer.updSuperGroup.end())
+             {delete win->buffer.writeBuffer.updSuperGroup[(void*)&group];
              }
-          win->buffer.writeBuffer.updSuperGroup->upd
+          win->buffer.writeBuffer.updSuperGroup
           .emplace((void*)&group, tgt);
         }
       }
@@ -164,7 +173,7 @@ namespace MTR{
     //     for(int i = 0; i < image->windows.size(); i++){
     //       Window* win = Window::getWindow(image->windows[i]);
 
-    //       win->buffer.writeBuffer.updSpriteGroup->upd
+    //       win->buffer.writeBuffer.updSpriteGroup
     //       [win->clampLayerIndex(image->layer)]
     //       .emplace((void*)&image, *image);
     //     }
@@ -175,7 +184,7 @@ namespace MTR{
       if(layer.windows.size() != 0){
         for(int i = 0; i < layer.windows.size(); i++){
           Window::getWindow(layer.windows[i])->
-          buffer.writeBuffer.updLayer->upd[layer.layerNumber] = layer;
+          buffer.writeBuffer.updLayer[layer.layerNumber] = layer;
         }
       }
     }
@@ -225,9 +234,9 @@ namespace MTR{
     }
 
     void Renderable::group(SuperGroup* supG){
+      ownerGroup = supG;
       supG->refreshBounds(this);
       refreshRotCenter();
-      ownerGroup = supG;
     }
 
     bool Renderable::addToQueue(){
@@ -271,21 +280,19 @@ namespace MTR{
     void SpriteGroup::placeSprites(std::vector<MTR::RND::Image*> spr){
       sprites.insert(sprites.end(), spr.begin(), spr.end());
       for(int i = 0; i < spr.size(); i++){
-        MTR::RND::Image* img = new MTR::RND::Image();
+        MTR::RND::Image* img = new MTR::RND::Image(spr[i]->windows);
         MTR::RND::Image::deepCopy(spr[i], img);
 
-        if(spritePTRs.find((void*)&spr[i]) !=
-        spritePTRs.end()) delete spritePTRs[(void*)&spr[i]];
+        // if(spritePTRs.find((void*)&spr[i]) !=
+        // spritePTRs.end()) delete spritePTRs[(void*)&spr[i]];
 
-        delete spritePTRs[(void*)&spr[i]];
-
-        spritePTRs.emplace((void*)&spr, img);
+        spritePTRs.emplace((void*)&spr[i], img);
       }
     }
 
     void SpriteGroup::placeSprite(MTR::RND::Image* spr){
       sprites.push_back(spr);
-      MTR::RND::Image* img = new MTR::RND::Image();
+      MTR::RND::Image* img = new MTR::RND::Image(spr->windows);
       MTR::RND::Image::deepCopy(spr, img);
 
       if(spritePTRs.find((void*)&spr) !=
@@ -347,6 +354,7 @@ namespace MTR{
         target->tgtRect  = source->tgtRect;
         target->srcRect  = source->srcRect;
         target->fileName = source->fileName;
+        target->textures = source->textures;
     }
 
 

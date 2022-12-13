@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <atomic>
+#include <utility>
 
 #include <SDL.h>
 
@@ -14,12 +15,14 @@
 #include "spriteGroup.h"
 #include "image.h"
 
+#include "INST.h"
+
 namespace MTR{
 
   Window::Window(
           int layerCount,
           Box windowSize,
-          std::string name,
+          const std::string& name,
           bool hasOwnThread,
           Vec2 position,
           SDL_WindowFlags mode
@@ -30,42 +33,52 @@ namespace MTR{
     this->hasOwnThread = hasOwnThread;
 
     window = SDL_CreateWindow(name.c_str(),
-                              position.x, 
-                              position.y, 
+                              SDL_WINDOWPOS_CENTERED, 
+                              SDL_WINDOWPOS_CENTERED, 
                               windowSize.width, windowSize.height, mode);
 
-    Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC |  SDL_RENDERER_TARGETTEXTURE; 
+    Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE; 
     context = SDL_CreateRenderer(window, -1, render_flags);
-    this->name = name;
+    // SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
 
-    if(windows.size() == 1) {
-      currentWindow = name;
-    }
+    this->name = name;
+    windows.emplace(name, this);
+    MTR::RND::Image* head   = (MTR::createSprite("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png", {0,0}, {0,0,32,32}, 0, {name}));
 
     // windows.insert({name, std::shared_ptr<Window>(this)});
 
   }
 
+  MTR::Window* MTR::Window::getWindow(const std::string& windowName){return windows[windowName];};
+  std::map<std::string, Window*> MTR::Window::getWindows(){return windows;};
+
   std::string Window::newWindow(
     int layerCount,
     Box windowSize,
-    std::string name,
+    const std::string& name,
     bool hasOwnThread,
     Vec2 position
     // SDL_WindowFlags mode
   ){
-    Window* win = new Window(
+    Window* win = new Window{
      layerCount,
      windowSize,
      name,
      hasOwnThread,
      position,
      (SDL_WindowFlags) 0
-    );
-    windows.insert({name, win});
+    };
+    windows.emplace(name, win);
 
-    if(hasOwnThread) win->renderThread = std::thread(mane, win);
-    else openMulti();
+    if(windows.size() == 1) {
+      currentWindow = name;
+    }
+
+    if(hasOwnThread){ 
+      // std::thread(mane, win).detach();
+      // win->renderThread.detach();
+    }
+    // else openMulti();
 
     return name;
   }
@@ -136,7 +149,7 @@ namespace MTR{
     SDL_RenderClear(context);
     RenderUpdates rB = buffer.readBuffer;
 
-    std::map<void*, MTR::RND::Layer       >::iterator Lit;
+    // std::vector<    MTR::RND::Layer       >::iterator Lit;
     // std::map<void*, FK::AT ::SuperGroup  >::iterator SupGit;
     std::map<void*, MTR::RND::SpriteGroup*>::iterator SpGit;
     std::map<void*, MTR::RND::Image      *>::iterator Iit;
@@ -146,65 +159,69 @@ namespace MTR{
 
     // FK::AT::Renderable cR;
     // buffer.readBuffer
-    for(int layer = 0; layer < rB.updLayer->upd.size(); layer++){
+    for(int layer = 0; layer < rB.updLayer.size(); layer++){
       // this should contain only one layer
-      // for(Lit = rB.updLayer->upd[layer].begin(); Lit != rB.updLayer->upd[layer].end(); Lit++){
+      // for(Lit = rB.updLayer[layer].begin(); Lit != rB.updLayer[layer].end(); Lit++){
         // cLayer = Lit->second;
-        cLayer = rB.updLayer->upd[layer];
+        cLayer = rB.updLayer[layer];
       // }
       if(cLayer.hidden) continue;
 
-      SpGit  = rB.updSpriteGroup->upd[layer].begin();
+      SpGit  = rB.updSpriteGroup[layer].begin();
       while(
-          SpGit != rB.updSpriteGroup->upd[layer].end()){
+          SpGit != rB.updSpriteGroup[layer].end()){
         // REVIEW THIS
-        if(rB.updSpriteGroup->upd[layer][SpGit->first]->pendingErase){
-          std::map<void*, MTR::RND::Image*>::iterator fIT;
-          for(fIT = rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.begin();
-          fIT != rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.end();
-          fIT++) delete fIT->second;
-          rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.clear();
+        // If the spriteGroup has a pending erase, delete all sprite members
+        if(SpGit->second->pendingErase){
+          // std::map<void*, MTR::RND::Image*>::iterator fIT;
+          // for(fIT = SpGit->second->spritePTRs.begin();
+          // fIT != SpGit->second->spritePTRs.end();
+          // fIT++) delete fIT->second;
 
-          delete SpGit->second;
-          SpGit = rB.updSpriteGroup->upd[layer].erase(SpGit);
+          // SpGit->second->spritePTRs.clear();
+
+          // The above is taken
+          // delete SpGit->second;
+          SpGit = rB.updSpriteGroup[layer].erase(SpGit);
 
           continue;
         }
 
-        if(rB.updSpriteGroup->upd[layer][SpGit->first]->hidden) {
+        if(SpGit->second->hidden) {
           SpGit++;
           continue;
         }
         // cSpG  = Rit->second.ownerGroup;
         Vec2 superOffsets = {0,0};
-        cSupG = rB.updSuperGroup->upd[SpGit->first]->ownerGroup;
+        if(rB.updSuperGroup.find(SpGit->first) != rB.updSuperGroup.end()){
+          cSupG = rB.updSuperGroup[SpGit->first]->ownerGroup;
+        } else cSupG = nullptr;
 
         while(cSupG != nullptr){
-          if(rB.updSuperGroup->upd[cSupG]->hidden) break;
-          superOffsets.x += rB.updSuperGroup->upd[cSupG]->bounds.pos.x;
-          superOffsets.y += rB.updSuperGroup->upd[cSupG]->bounds.pos.y;
-          cSupG           = rB.updSuperGroup->upd[cSupG]->ownerGroup;
+          if(rB.updSuperGroup[cSupG]->hidden) break;
+          superOffsets.x += rB.updSuperGroup[cSupG]->bounds.pos.x;
+          superOffsets.y += rB.updSuperGroup[cSupG]->bounds.pos.y;
+          cSupG           = rB.updSuperGroup[cSupG]->ownerGroup;
         }
-        if(rB.updSuperGroup->upd[cSupG]->hidden){
+        if(cSupG != nullptr && rB.updSuperGroup[cSupG]->hidden){
           SpGit++;
           continue;
         } 
 
 
-        Iit  = rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.begin();
+        Iit  = SpGit->second->spritePTRs.begin();
         while(
-          Iit != rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.end  ()
+          Iit != SpGit->second->spritePTRs.end()
           // ;Iit++
           ){
           if(Iit->second->pendingErase){
             // for(SDL_Texture* tex : )
-            SDL_DestroyTexture(rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs[Iit->first]->textures[name]);
+            SDL_DestroyTexture(Iit->second->textures[name]);
             // }
-            rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.erase(Iit->first);
+            Iit = SpGit->second->spritePTRs.erase(Iit);
             continue;
-          }
-          if(Iit->second->layer != layer){
-            rB.updSpriteGroup->upd[layer][SpGit->first]->spritePTRs.erase(Iit->first);
+          } else if(Iit->second->layer != layer){
+            Iit = SpGit->second->spritePTRs.erase(Iit);
             continue;
           }
           if(Iit->second->hidden) {
@@ -213,33 +230,33 @@ namespace MTR{
           }
 
           Vec2 screenPosCam = {0,0};
-          if(!rB.updSpriteGroup->upd[layer][SpGit->first]->ignoreCamera){
+          if(!SpGit->second->ignoreCamera){
             screenPosCam = 
-            {rB.updSpriteGroup->upd[layer][SpGit->first]->worldPos.x - camPos.x,
-             rB.updSpriteGroup->upd[layer][SpGit->first]->worldPos.y - camPos.y};
+            {SpGit->second->worldPos.x - camPos.x,
+             SpGit->second->worldPos.y - camPos.y};
           }
 
           Vec2 newPos = {
             cLayer.offset.x                                   +
             Iit->second->bounds.pos.x                         + 
-            rB.updSuperGroup->upd[SpGit->first]->bounds.pos.x +
+            SpGit->second->bounds.pos.x                       +
             superOffsets.x                                    +
             screenPosCam.x,
 
             cLayer.offset.y                                   +
             Iit->second->bounds.pos.y                         + 
-            rB.updSuperGroup->upd[SpGit->first]->bounds.pos.y +
+            SpGit->second->bounds.pos.y                       +
             superOffsets.y                                    +
             screenPosCam.y
             };
           
           // Crude culling
-          if((newPos.x + Iit->second->bounds.box.width  < 0 &&
-              newPos.y + Iit->second->bounds.box.height < 0) ||
-              (newPos.x > bounds.box.width && newPos.y > bounds.box.height)){
-            Iit++;
-            continue;
-          }
+          // if((newPos.x + Iit->second->bounds.box.width  < 0 &&
+          //     newPos.y + Iit->second->bounds.box.height < 0) ||
+          //     (newPos.x > bounds.box.width && newPos.y > bounds.box.height)){
+          //   Iit++;
+          //   continue;
+          // }
 
           Iit->second->tgtRect.x = newPos.x;
           Iit->second->tgtRect.y = newPos.y;
@@ -272,14 +289,20 @@ namespace MTR{
       if(it->second->hasOwnThread) it->second->mutex.lock();
       else multimutex.lock();
 
-      it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
+      std::swap(it->second->buffer.swapBuffer,it->second->buffer.writeBuffer);
 
       if(it->second->hasOwnThread) it->second->mutex.unlock();
       else multimutex.unlock();
+
+      // for(int i = 0; i < it->second->buffer.writeBuffer.updLayer.size(); i++){
+      //   // it->second->buffer.writeBuffer.updLayer[i].clear();
+      //   it->second->buffer.writeBuffer.updSpriteGroup[i].clear();
+      // }
+      // it->second->buffer.writeBuffer.updSuperGroup.clear();
     }
   }
 
-  void Window::updateOne(std::string window){
+  void Window::updateOne(const std::string& window){
     if(windows[window]->hasOwnThread) windows[window]->mutex.lock();
     else multimutex.lock();
 

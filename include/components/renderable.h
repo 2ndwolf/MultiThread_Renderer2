@@ -18,7 +18,7 @@ namespace MTR{
 
     class Renderable{
       protected:
-      std::atomic<bool> updateAsRenderable;
+      std::atomic<bool> updateAsRenderable = false;
       bool isQueued = false;
 
       bool checkSanity();
@@ -29,7 +29,8 @@ namespace MTR{
       void group(SuperGroup* supG);
 
 
-      std::vector<std::string> windows = {};
+      // std::string window;
+      std::vector<std::string> windows;
       Bounds     bounds       = {INT_MIN, INT_MIN, 0, 0};
       // bool       ignoreCamera = true              ;
       bool         hidden       = false             ;
@@ -46,8 +47,8 @@ namespace MTR{
       // std::atomic<bool> toUpdate      = true;
       bool pendingErase = false;
 
-      inline Renderable(
-        std::vector<std::string> pwindows = {},
+      Renderable(
+        std::vector<std::string>  pwindows,
         Bounds     pbounds       = {INT_MIN, INT_MIN, 0, 0},
         // bool       pignoreCamera = true              ,
         bool         phidden       = false             ,
@@ -60,7 +61,7 @@ namespace MTR{
         SuperGroup*  pownerGroup   = nullptr       
         // int          player        = 0
 
-      ) : windows     (pwindows     ),
+      ) : /* windows     (pwindows     ), */
           bounds      (pbounds      ),
           // ignoreCamera(pignoreCamera),
           hidden      (phidden      ),
@@ -73,7 +74,9 @@ namespace MTR{
           ownerGroup  (pownerGroup  )
           // layer       (player       )/* , */
           // self        ((void*)&this )
-      {};
+      {
+        this->windows = pwindows;
+      };
 
       //   ignoreCamera = setting;
       //   setUpdate();

@@ -11,12 +11,12 @@ namespace MTR{
 
 
   RND::Image* createImage(
-    std::string fileName, 
+    const std::string& fileName, 
     Vec2 offset, 
     int layer,
     std::vector<std::string> windows);
 
-  RND::Image* createSprite(std::string fileName,
+  RND::Image* createSprite(const std::string& fileName,
     Vec2 offset,
     Bounds crop,
     int layer,
@@ -25,7 +25,7 @@ namespace MTR{
 
   RND::Text* createText(
     SUR::Font font, 
-    std::string text,
+    const std::string& text,
     Vec2 offset, 
     int layer,
     std::vector<std::string> windows, 

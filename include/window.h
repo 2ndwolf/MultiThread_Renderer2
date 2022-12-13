@@ -16,7 +16,7 @@ namespace MTR{
 
   class Window{
     private:
-    ~Window(){
+    ~Window(){ 
       // delete context;
       // delete window;
     }
@@ -30,17 +30,16 @@ namespace MTR{
     bool hasOwnThread = false;
     int ms = 0;
     int fps = 0;
-    bool fpsShown;
+    bool fpsShown = false;
 
     SDL_WindowFlags windowFlags; //?
 
-    bool mouseFocus;
-    bool keyboardFocus;
-    bool fullScreen;
-    bool minimized;
-    bool shown;
+    bool mouseFocus = false;
+    bool keyboardFocus = false;
+    bool fullScreen = false;
+    bool minimized = false;
+    bool shown = false;
     SDL_Window* window;
-    SDL_Renderer* context;
 
 
     static void openMulti();
@@ -50,13 +49,13 @@ namespace MTR{
     void multiMane();
 
     protected:
-    inline static std::map<std::string, Window*> windows = std::map<std::string, Window*>();
+    inline static std::map<std::string, Window*> windows;
     inline static std::string currentWindow;
 
     Window(
       int layerCount,
       Box windowSize,
-      std::string name,
+      const std::string& name,
       bool hasOwnThread = false,
       Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
       SDL_WindowFlags mode = (SDL_WindowFlags) 0
@@ -72,11 +71,12 @@ namespace MTR{
 
     bool pendingErase = false; 
 
+    SDL_Renderer* context;
 
     static std::string newWindow(
       int layerCount,
       Box windowSize,
-      std::string name,
+      const std::string& name,
       bool hasOwnThread = false,
       Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED}
       // SDL_WindowFlags mode = (SDL_WindowFlags) 0
@@ -87,22 +87,23 @@ namespace MTR{
     };
 
     bool layerInBounds(int layer){
-      return layer > 0 && layer < buffer.readBuffer.updLayer->upd.size();
+      return layer > 0 && layer < buffer.readBuffer.updLayer.size();
     };
 
-    const int getLayerCount(){return buffer.readBuffer.updLayer->upd.size();};
-    static const int getLayerCount(std::string windowName){return windows[windowName]->buffer.readBuffer.updLayer->upd.size();};
+    const int getLayerCount(){return buffer.readBuffer.updLayer.size();};
+    static const int getLayerCount(const std::string& windowName){return windows[windowName]->buffer.readBuffer.updLayer.size();};
     const bool getHasOwnThread() {return hasOwnThread;};
 
     SDL_Renderer* getContext(){return context;}
 
     static const std::string getCurrentWinName(){return currentWindow;};
     // static MTR::Window* getCurrentWindow(){return windows[currentWindow];};
-    static MTR::Window* getWindow(std::string windowName){return windows[windowName];};
+    static Window* getWindow(const std::string& windowName);
+    static std::map<std::string, Window*> getWindows();
     static const int getWindowCount(){return windows.size();};
 
     static void updateAll();
-    static void updateOne(std::string window);
+    static void updateOne(const std::string& window);
 
   };
 
