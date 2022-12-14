@@ -1,8 +1,15 @@
-# This is
-mainly boilerplate code to integrate basic SDL functionalities. (Sound, keyboard input, render).
+# Multi Thread Renderer (v2)
 
-# Custom
-Through assets/uPref.ini, you can customize which image should be displayed and what keybinds are. Sound is also customizeable.
+cuz once I rebased my local version with an old one ToT
 
-# Cat
-character customizer race edition
+
+
+There will be a library header...
+
+Only that header should be necessary to interface with an MTR lib. Which will be released as a dll once I'm done ironing out stuff.
+
+
+
+(C) MTR's license is the same as SDL's cuz it uses it.
+
+License is subject to change once (or if) I get rid of the SDL dependency and write my own rendering back-back-back-end
