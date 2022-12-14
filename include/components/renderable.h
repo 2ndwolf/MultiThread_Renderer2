@@ -61,7 +61,7 @@ namespace MTR{
         SuperGroup*  pownerGroup   = nullptr       
         // int          player        = 0
 
-      ) : /* windows     (pwindows     ), */
+      ) : windows     (pwindows     ),
           bounds      (pbounds      ),
           // ignoreCamera(pignoreCamera),
           hidden      (phidden      ),
@@ -74,64 +74,9 @@ namespace MTR{
           ownerGroup  (pownerGroup  )
           // layer       (player       )/* , */
           // self        ((void*)&this )
-      {
-        this->windows = pwindows;
-      };
-
-      //   ignoreCamera = setting;
-      //   setUpdate();
-      // };
-
-      // inline void setHidden      (bool setting){
-      //   hidden = setting;
-      //   setUpdate();
-      // };
-
-      // // Call from ORE::Renderable if Renderable
-      // inline void setBounds      (Bounds newValue){
-      //   bounds = newValue;
-      //   setUpdate();
-      // }; 
-
-      // inline void setAngle       (int  newValue){
-      //   angle = newValue;
-      //   setUpdate();
-      // };
-
-      // inline void setRotCenter   (Vec2 newValue){
-      //   // if(
-      //   //   (newValue.x < 0 || newValue.x - INT_MAX < 0) &&
-      //   //   (newValue.y < 0 || newValue.y - INT_MAX < 0)
-      //   //   ){
-
-      //     rotCenter = newValue;
-      //   // } else rotCenter = {0,0};
-      //   setUpdate();
-      // };
-
-      // inline void setZoomCenter  (Vec2 newValue){
-      //   zoomCenter= newValue;
-      //   setUpdate();
-      // };
-
-      // inline void setZoom        (float newValue){
-      //   zoom = newValue;
-      //   setUpdate();
-      // };
-
-      // inline void setAngleFrSuper(bool setting){
-      //   angleFrSuper = setting;
-      //   setUpdate();
-      // };
-
-      // inline void setUpdate(){
-      //   // if(typeid(this) == typeid(Renderable))
-      //   // if(copied) writeCycles=!writeCycles;
-      //   toUpdate = true;
-      // };
+      {};
 
       public:
-      // bool writeCycles;
 
       static void deepCopy(Renderable* source, Renderable* target);
 

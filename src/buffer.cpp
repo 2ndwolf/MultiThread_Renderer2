@@ -170,4 +170,26 @@ if(source->updSpriteGroup[layer].size() != 0)
       }
     }
   }
+  
+  void Buffer::cleanBuffer(RenderUpdates* buffer){
+    // std::map<void *, MTR::RND::SpriteGroup *>::iterator spGit;
+    // std::map<void *, MTR::RND::SuperGroup *>::iterator supGit;
+
+    for(int i = 0; i < buffer->updLayer.size(); i++){
+      // updLayer[i].clear();
+
+      // for(spGit = buffer->updSpriteGroup[i].begin();
+      //     spGit != buffer->updSpriteGroup[i].end(); spGit++){
+      //     // delete spGit->second;
+      // }
+      buffer->updSpriteGroup[i].clear();
+    }
+
+    // for(supGit  = buffer->updSuperGroup.begin();
+    //     supGit != buffer->updSuperGroup.end(); supGit++){
+    //     // delete supGit->second;
+    // }
+    buffer->updSuperGroup.clear();
+
+  }
 }

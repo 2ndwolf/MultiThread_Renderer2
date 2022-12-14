@@ -20,9 +20,6 @@ namespace MTR{
 
       static void update(SuperGroup* group);
 
-      // bool ignoreCamera = true ;
-      // Vec2 worldPos     = {0,0};
-
       static void deepCopy(SuperGroup* source, SuperGroup* target);
       bool checkSanity();
 

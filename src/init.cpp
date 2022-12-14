@@ -47,7 +47,7 @@ int MTR_init(){
     if (TTF_Init() == -1){
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
       "Error initializing SDL_ttf", TTF_GetError(), NULL); 
-      return 5;
+      return 1;
     }
   // #endif
 

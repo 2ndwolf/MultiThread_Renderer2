@@ -32,7 +32,7 @@ namespace MTR{
       Color textColor;
 
       static SUR::Font loadFont(const std::string& fileName, int size);
-      // private:
+
     };
   }
 }

@@ -8,10 +8,6 @@ namespace MTR {
   typedef int ID;
 
 }
-  // typedef struct idInf{
-  //   ID id;
-  //   int layer;
-  // } idInf;
 
   struct Color {
     uint8_t r;

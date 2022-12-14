@@ -57,8 +57,8 @@ namespace MTR{
       int layerCount,
       Box windowSize,
       const std::string& name,
-      bool hasOwnThread = false,
       Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
+      bool hasOwnThread = false,
       SDL_WindowFlags mode = (SDL_WindowFlags) 0
     );
 
@@ -78,8 +78,8 @@ namespace MTR{
       int layerCount,
       Box windowSize,
       const std::string& name,
-      bool hasOwnThread = false,
-      Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED}
+      Vec2 position = {SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED},
+      bool hasOwnThread = false
       // SDL_WindowFlags mode = (SDL_WindowFlags) 0
     );
 
@@ -100,7 +100,7 @@ namespace MTR{
     static const std::string getCurrentWinName(){return currentWindow;};
     // static MTR::Window* getCurrentWindow(){return windows[currentWindow];};
     static Window* getWindow(const std::string& windowName);
-    static std::map<std::string, Window*> getWindows();
+    // static std::map<std::string, Window*> getWindows();
     static const int getWindowCount(){return windows.size();};
 
     static void updateAll();

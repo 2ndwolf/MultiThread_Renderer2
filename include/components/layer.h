@@ -10,6 +10,8 @@
 
 namespace MTR{
   namespace RND{
+
+    // TODO :: Should this be a renderable?
     struct Layer/* : public Renderable */{
       // inline Layer(){};
 

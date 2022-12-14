@@ -18,11 +18,12 @@ namespace MTR{
     void SUR::loadSurface(const std::string& fileName, bool keepImgInMemory){
       if(!SUR::surfaces.count(fileName)){
         SUR::SDLSurface newSur;
-        const char* bob = fileName.c_str();
-        newSur.sur = IMG_Load(bob);
-        if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", IMG_GetError(), NULL); 
+        newSur.sur = IMG_Load(fileName.c_str());
         
+        if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error loading image", IMG_GetError(), NULL); 
         if(newSur.sur == nullptr) newSur.sur = IMG_Load(Defaults::placeHolder.c_str());
+        if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error loading placeholder", IMG_GetError(), NULL);
+
         newSur.fileName = fileName;
         if(keepImgInMemory) newSur.useCount = -1;
         else newSur.useCount = 1;
@@ -50,14 +51,9 @@ namespace MTR{
       SUR::loadSurface(fileName);
 
       for(int i = 0; i < windows.size(); i++){
-        //  std::string potato = windows[i];
-        // std::map<std::string, Window*> BOB = Window::getWindows();
-        // Window* fun = BOB[potato];
-        // auto fads = fun->getContext();
-
-        SDL_Texture* a = SDL_CreateTextureFromSurface(Window::getWindow(windows[i])->getContext(), SUR::surfaces[fileName].sur);
-        if(a == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
-        textures.emplace(windows[i],a);
+        SDL_Texture* tex = SDL_CreateTextureFromSurface(Window::getWindow(windows[i])->getContext(), SUR::surfaces[fileName].sur);
+        if(tex == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
+        else textures.emplace(windows[i], tex);
       }
 
       // TODO :: std::map<std::string, Bounds> areaS;

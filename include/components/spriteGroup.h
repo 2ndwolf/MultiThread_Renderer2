@@ -36,6 +36,7 @@ namespace MTR{
       // };
       std::vector<MTR::RND::Image*> sprites;
 
+      // TODO :: This needs reviewing
       inline ~SpriteGroup(){
         // UPdATE PSRIGORUP!?
         this->pendingErase = true;
@@ -75,11 +76,7 @@ namespace MTR{
 
 
       std::map<void*, MTR::RND::Image*> spritePTRs;
-      // protected:
-      // bool initialized = false;
     };
-
-    // std::map<void*, SuperGroup> updates = std::map<void*, SuperGroup>();
   }
 }
       

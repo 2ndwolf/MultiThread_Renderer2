@@ -23,8 +23,8 @@ namespace MTR{
           int layerCount,
           Box windowSize,
           const std::string& name,
-          bool hasOwnThread,
           Vec2 position,
+          bool hasOwnThread,
           SDL_WindowFlags mode
           ){
 
@@ -33,48 +33,34 @@ namespace MTR{
     this->hasOwnThread = hasOwnThread;
 
     window = SDL_CreateWindow(name.c_str(),
-                              SDL_WINDOWPOS_CENTERED, 
-                              SDL_WINDOWPOS_CENTERED, 
+                              position.x, 
+                              position.y, 
                               windowSize.width, windowSize.height, mode);
 
     Uint32 render_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE; 
     context = SDL_CreateRenderer(window, -1, render_flags);
-    // SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
+    if(context == NULL) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing context", SDL_GetError(), NULL);
 
     this->name = name;
-    // windows.emplace(name, this);
-
-    // std::map<std::string, Window*> BOB = Window::getWindows();
-    // Window* fun = BOB[name];
-    // auto fads = fun->getContext();
-
-    // auto a = SDL_CreateTextureFromSurface(fun->context, 
-    // IMG_Load("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png"));
-
-
-    // MTR::RND::Image* head   = (MTR::createSprite("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png", {0,0}, {0,0,32,32}, 0, {name}));
-
-    // windows.insert({name, std::shared_ptr<Window>(this)});
-
   }
 
   MTR::Window* MTR::Window::getWindow(const std::string& windowName){return windows[windowName];};
-  std::map<std::string, Window*> MTR::Window::getWindows(){return windows;};
+  // std::map<std::string, Window*> MTR::Window::getWindows(){return windows;};
 
   std::string Window::newWindow(
     int layerCount,
     Box windowSize,
     const std::string& name,
-    bool hasOwnThread,
-    Vec2 position
+    Vec2 position,
+    bool hasOwnThread
     // SDL_WindowFlags mode
   ){
     Window* win = new Window{
      layerCount,
      windowSize,
      name,
-     hasOwnThread,
      position,
+     hasOwnThread,
      (SDL_WindowFlags) 0
     };
     windows.emplace(name, win);
@@ -296,20 +282,18 @@ namespace MTR{
 
   void Window::updateAll(){
     std::map<std::string, Window*>::iterator it;
+
     for(it = windows.begin(); it != windows.end(); it++){
       if(it->second->hasOwnThread) it->second->mutex.lock();
       else multimutex.lock();
 
       it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
 
+      Buffer::cleanBuffer(&(it->second->buffer.writeBuffer));
+
       if(it->second->hasOwnThread) it->second->mutex.unlock();
       else multimutex.unlock();
 
-      for(int i = 0; i < it->second->buffer.writeBuffer.updLayer.size(); i++){
-        // it->second->buffer.writeBuffer.updLayer[i].clear();
-        it->second->buffer.writeBuffer.updSpriteGroup[i].clear();
-      }
-      it->second->buffer.writeBuffer.updSuperGroup.clear();
     }
   }
 
@@ -319,8 +303,11 @@ namespace MTR{
 
     windows[window]->buffer.swapBuffer = windows[window]->buffer.writeBuffer;
 
+    Buffer::cleanBuffer(&(windows[window]->buffer.writeBuffer));
+
     if(windows[window]->hasOwnThread) windows[window]->mutex.unlock();
     else multimutex.unlock();
+
   }
 
 }

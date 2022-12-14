@@ -19,6 +19,7 @@ namespace MTR{
     std::vector<                MTR::RND::Layer       >  updLayer      ;
     std::vector<std::map<void*, MTR::RND::SpriteGroup*>> updSpriteGroup;
                 std::map<void*, MTR::RND::SuperGroup* >  updSuperGroup ;
+
     RenderUpdates(int layers){
       updLayer       = std::vector<                MTR::RND::Layer       > (layers);
       updSpriteGroup = std::vector<std::map<void*, MTR::RND::SpriteGroup*>>(layers);
@@ -26,6 +27,7 @@ namespace MTR{
     };
 
     RenderUpdates(){};
+
     ~RenderUpdates(){
       std::map<void*, MTR::RND::SpriteGroup*>::iterator it;
       for(int i = 0; i < updSpriteGroup.size(); i++){
@@ -39,13 +41,8 @@ namespace MTR{
       }
     }
 
-    // protected:
-
-    public:
     enum updType{
       LAYER,
-      // SPRITE,
-      // TEXT,
       SPRITEGROUP,
       SUPERGROUP,
       LENGTH
