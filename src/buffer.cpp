@@ -130,10 +130,10 @@ namespace MTR{
 
                 target->updSpriteGroup[layer][it->first] = sG;
 
-                delete source->updSpriteGroup[layer][it->first];
+                delete it->second;
 
             }
-
+if(source->updSpriteGroup[layer].size() != 0)
             source->updSpriteGroup[layer].clear();
           }
           break;

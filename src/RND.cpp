@@ -14,8 +14,8 @@
 #include "surfaces.h"
 
 namespace MTR{
-  namespace SUR{
-    void loadSurface(const std::string& fileName, bool keepImgInMemory){
+  // namespace SUR{
+    void SUR::loadSurface(const std::string& fileName, bool keepImgInMemory){
       if(!SUR::surfaces.count(fileName)){
         SUR::SDLSurface newSur;
         const char* bob = fileName.c_str();
@@ -36,7 +36,7 @@ namespace MTR{
       }
 
     }
-  }
+  // }
   namespace RND{
 
 
@@ -50,12 +50,12 @@ namespace MTR{
       SUR::loadSurface(fileName);
 
       for(int i = 0; i < windows.size(); i++){
-        std::string potato = windows[i];
-        std::map<std::string, Window*> BOB = Window::getWindows();
-        Window* fun = BOB[potato];
-        auto fads = fun->getContext();
+        //  std::string potato = windows[i];
+        // std::map<std::string, Window*> BOB = Window::getWindows();
+        // Window* fun = BOB[potato];
+        // auto fads = fun->getContext();
 
-        auto a = SDL_CreateTextureFromSurface(fun->context, SUR::surfaces[fileName].sur);
+        SDL_Texture* a = SDL_CreateTextureFromSurface(Window::getWindow(windows[i])->getContext(), SUR::surfaces[fileName].sur);
         if(a == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
         textures.emplace(windows[i],a);
       }

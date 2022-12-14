@@ -42,8 +42,17 @@ namespace MTR{
     // SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
 
     this->name = name;
-    windows.emplace(name, this);
-    MTR::RND::Image* head   = (MTR::createSprite("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png", {0,0}, {0,0,32,32}, 0, {name}));
+    // windows.emplace(name, this);
+
+    // std::map<std::string, Window*> BOB = Window::getWindows();
+    // Window* fun = BOB[name];
+    // auto fads = fun->getContext();
+
+    // auto a = SDL_CreateTextureFromSurface(fun->context, 
+    // IMG_Load("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png"));
+
+
+    // MTR::RND::Image* head   = (MTR::createSprite("D:/Dev/MTR2_aslib/binDebug_x86_64/assets/head440.png", {0,0}, {0,0,32,32}, 0, {name}));
 
     // windows.insert({name, std::shared_ptr<Window>(this)});
 
@@ -75,19 +84,19 @@ namespace MTR{
     }
 
     if(hasOwnThread){ 
-      // std::thread(mane, win).detach();
+      std::thread(mane, win).detach();
       // win->renderThread.detach();
     }
-    // else openMulti();
+    else openMulti();
 
     return name;
   }
 
-
+  // THIS DOES NOT WORKS!!
   void Window::openMulti(){
     if(!multiInitialized) {
       multiInitialized = true;
-      std::thread(multiMane);
+      // std::thread(multiMane).detach();
     }
   };
 
@@ -147,7 +156,7 @@ namespace MTR{
 
   void Window::display(){
     SDL_RenderClear(context);
-    RenderUpdates rB = buffer.readBuffer;
+    // RenderUpdates buffer.readBuffer = buffer.readBuffer;
 
     // std::vector<    MTR::RND::Layer       >::iterator Lit;
     // std::map<void*, FK::AT ::SuperGroup  >::iterator SupGit;
@@ -159,17 +168,17 @@ namespace MTR{
 
     // FK::AT::Renderable cR;
     // buffer.readBuffer
-    for(int layer = 0; layer < rB.updLayer.size(); layer++){
+    for(int layer = 0; layer < buffer.readBuffer.updLayer.size(); layer++){
       // this should contain only one layer
-      // for(Lit = rB.updLayer[layer].begin(); Lit != rB.updLayer[layer].end(); Lit++){
+      // for(Lit = buffer.readBuffer.updLayer[layer].begin(); Lit != buffer.readBuffer.updLayer[layer].end(); Lit++){
         // cLayer = Lit->second;
-        cLayer = rB.updLayer[layer];
+        cLayer = buffer.readBuffer.updLayer[layer];
       // }
       if(cLayer.hidden) continue;
 
-      SpGit  = rB.updSpriteGroup[layer].begin();
+      SpGit  = buffer.readBuffer.updSpriteGroup[layer].begin();
       while(
-          SpGit != rB.updSpriteGroup[layer].end()){
+          SpGit != buffer.readBuffer.updSpriteGroup[layer].end()){
         // REVIEW THIS
         // If the spriteGroup has a pending erase, delete all sprite members
         if(SpGit->second->pendingErase){
@@ -182,7 +191,7 @@ namespace MTR{
 
           // The above is taken
           // delete SpGit->second;
-          SpGit = rB.updSpriteGroup[layer].erase(SpGit);
+          SpGit = buffer.readBuffer.updSpriteGroup[layer].erase(SpGit);
 
           continue;
         }
@@ -193,20 +202,20 @@ namespace MTR{
         }
         // cSpG  = Rit->second.ownerGroup;
         Vec2 superOffsets = {0,0};
-        if(rB.updSuperGroup.find(SpGit->first) != rB.updSuperGroup.end()){
-          cSupG = rB.updSuperGroup[SpGit->first]->ownerGroup;
+        if(buffer.readBuffer.updSuperGroup.find(SpGit->first) != buffer.readBuffer.updSuperGroup.end()){
+          cSupG = buffer.readBuffer.updSuperGroup[SpGit->first]->ownerGroup;
         } else cSupG = nullptr;
 
         while(cSupG != nullptr){
-          if(rB.updSuperGroup[cSupG]->hidden) break;
-          superOffsets.x += rB.updSuperGroup[cSupG]->bounds.pos.x;
-          superOffsets.y += rB.updSuperGroup[cSupG]->bounds.pos.y;
-          cSupG           = rB.updSuperGroup[cSupG]->ownerGroup;
+          if(buffer.readBuffer.updSuperGroup[cSupG]->hidden) break;
+          superOffsets.x += buffer.readBuffer.updSuperGroup[cSupG]->bounds.pos.x;
+          superOffsets.y += buffer.readBuffer.updSuperGroup[cSupG]->bounds.pos.y;
+          cSupG           = buffer.readBuffer.updSuperGroup[cSupG]->ownerGroup;
         }
-        if(cSupG != nullptr && rB.updSuperGroup[cSupG]->hidden){
+        if(cSupG != nullptr && buffer.readBuffer.updSuperGroup[cSupG]->hidden){
           SpGit++;
           continue;
-        } 
+        }   
 
 
         Iit  = SpGit->second->spritePTRs.begin();
@@ -267,6 +276,7 @@ namespace MTR{
             hasRotCenter = true;
           }
           
+          somethingToDraw = true;
           SDL_RenderCopyEx(context,
           Iit->second->textures[name],
           &(Iit->second->srcRect), &(Iit->second->tgtRect),
@@ -280,7 +290,8 @@ namespace MTR{
       }
     }
 
-    SDL_RenderPresent(context);
+    if(somethingToDraw) SDL_RenderPresent(context);
+    somethingToDraw = false;
   }
 
   void Window::updateAll(){
@@ -289,16 +300,16 @@ namespace MTR{
       if(it->second->hasOwnThread) it->second->mutex.lock();
       else multimutex.lock();
 
-      std::swap(it->second->buffer.swapBuffer,it->second->buffer.writeBuffer);
+      it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
 
       if(it->second->hasOwnThread) it->second->mutex.unlock();
       else multimutex.unlock();
 
-      // for(int i = 0; i < it->second->buffer.writeBuffer.updLayer.size(); i++){
-      //   // it->second->buffer.writeBuffer.updLayer[i].clear();
-      //   it->second->buffer.writeBuffer.updSpriteGroup[i].clear();
-      // }
-      // it->second->buffer.writeBuffer.updSuperGroup.clear();
+      for(int i = 0; i < it->second->buffer.writeBuffer.updLayer.size(); i++){
+        // it->second->buffer.writeBuffer.updLayer[i].clear();
+        it->second->buffer.writeBuffer.updSpriteGroup[i].clear();
+      }
+      it->second->buffer.writeBuffer.updSuperGroup.clear();
     }
   }
 

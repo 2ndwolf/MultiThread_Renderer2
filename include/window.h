@@ -31,6 +31,7 @@ namespace MTR{
     int ms = 0;
     int fps = 0;
     bool fpsShown = false;
+    bool somethingToDraw = false;
 
     SDL_WindowFlags windowFlags; //?
 
