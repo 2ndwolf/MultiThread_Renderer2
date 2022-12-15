@@ -38,10 +38,11 @@ namespace MTR{
   }
 
   RND::Image* createSprite(const std::string& fileName,
-  Vec2 offset,
+  std::vector<std::string> windows,
   Bounds crop,
-  int layer,
-  std::vector<std::string> windows){
+  Vec2 offset,
+  int layer
+  ){
     RND::Image* img = new RND::Image(windows);
 
     // img->windows    = windows;
