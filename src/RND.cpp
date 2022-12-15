@@ -1,6 +1,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <cstring>
+#include <string>
 
 #include "defaults.h"
 #include "identifier.h"
@@ -18,8 +20,13 @@ namespace MTR{
     void SUR::loadSurface(const std::string& fileName, bool keepImgInMemory){
       if(!SUR::surfaces.count(fileName)){
         SUR::SDLSurface newSur;
-        newSur.sur = IMG_Load(fileName.c_str());
-        
+
+        char fileLoc[strlen(Defaults::rootFolder) + strlen(fileName.c_str())];
+        std::strcpy(fileLoc, Defaults::rootFolder);
+        std::strcat(fileLoc, fileName.c_str());
+
+        newSur.sur = IMG_Load(fileLoc);
+
         if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error loading image", IMG_GetError(), NULL); 
         if(newSur.sur == nullptr) newSur.sur = IMG_Load(Defaults::placeHolder.c_str());
         if(newSur.sur == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error loading placeholder", IMG_GetError(), NULL);

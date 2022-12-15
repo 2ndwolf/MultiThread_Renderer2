@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>
 
 #include "INIT.h"
+#include "defaults.h"
   
 int MTR_init(){
 
@@ -51,6 +52,8 @@ int MTR_init(){
     }
   // #endif
 
+  MTR::Defaults::rootFolder = SDL_GetBasePath();
+  
   return 0;
 };
 
