@@ -60,7 +60,7 @@ find_package(SDL2_ttf REQUIRED)
 
 # add_compile_options(-M -H)
 
-configure_file("${PROJECT_SOURCE_DIR}/assets/uPref.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/uPref.ini" COPYONLY)
+# configure_file("${PROJECT_SOURCE_DIR}/assets/uPref.ini" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/uPref.ini" COPYONLY)
 
 if(NOT STATIC_BUILD)
 	if    (CMAKE_SIZEOF_VOID_P EQUAL 4)
