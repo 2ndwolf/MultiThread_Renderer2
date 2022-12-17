@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>
 #include <cstring>
 #include <string>
+#include <algorithm>
 
 #include "defaults.h"
 #include "identifier.h"
@@ -55,19 +56,9 @@ namespace MTR{
       }
 
       this->fileName = fileName;
+      this->surfaceUpdated = true;
       SUR::loadSurface(fileName);
 
-      for(int i = 0; i < windows.size(); i++){
-        SDL_Texture* tex = SDL_CreateTextureFromSurface(Window::getWindow(windows[i])->getContext(), SUR::surfaces[fileName].sur);
-        if(tex == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error initializing I'M A POTATO", SDL_GetError(), NULL);
-        else textures.emplace(windows[i], tex);
-      }
-
-      // TODO :: std::map<std::string, Bounds> areaS;
-      // textures[windows[]0]->
-      if(!fromSpriteSheet){
-        SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
-      }
     };
 
 
@@ -92,13 +83,7 @@ namespace MTR{
       fileName = newSur.fileName;
 
       SUR::surfaces.insert({newSur.fileName, newSur});
-      for(int i = 0; i < windows.size(); i++){
-        textures[windows[i]] = SDL_CreateTextureFromSurface(
-          Window::getWindow(windows[i])->getContext(), SUR::surfaces[newSur.fileName].sur);
-      }
-
-      // TODO :: std::map<std::string, Bounds> areaS;
-      SDL_QueryTexture(textures[windows[0]], NULL, NULL, &area.box.width, &area.box.height);
+      surfaceUpdated = true;
     }
 
     SUR::Font Text::loadFont(const std::string& fileName, int size){
@@ -128,47 +113,59 @@ namespace MTR{
     //   }
     // }
 
-    void SpriteGroup::update(SpriteGroup* group){
-      if(group->checkSanity()){
-        SpriteGroup* tgt = new SpriteGroup{group->windows};
-        SpriteGroup::deepCopy(group, tgt);
+    void SpriteGroup::update(std::vector<SpriteGroup*> groups){
+      for(int i = 0; i < groups.size(); i++){
+        // if(groups[i]->checkSanity()){
 
-        for(int i = 0; i < group->windows.size(); i++){
-          Window* win = Window::getWindow(group->windows[i]);
+          for(int j = 0; j < groups[i]->windows.size(); j++){
+            Window* win = Window::getWindow(groups[i]->windows[j]);
 
-          if(
-            win->buffer.writeBuffer.updSpriteGroup
-            [win->clampLayerIndex(group->layer)].find((void*)&group) !=
-            win->buffer.writeBuffer.updSpriteGroup
-            [win->clampLayerIndex(group->layer)].end())
-            { delete win->buffer.writeBuffer.updSpriteGroup
-              [win->clampLayerIndex(group->layer)][(void*)&group];
-            }
-
-          win->buffer.writeBuffer.updSpriteGroup
-          [win->clampLayerIndex(group->layer)]
-          .emplace((void*)&group, tgt);
+            win->buffer.writeBuffer.ptrSpriteGroup
+            [win->clampLayerIndex(groups[i]->layer)]
+            .emplace((void*)groups[i]->self, groups[i]);
+          }
         }
-      }
+      // }
     }
+    // void SuperGroup::update(std::vector<SpriteGroup*> groups){
+    //   for(int i = 0; i < groups.size(); i++){
+    //     if(groups[i]->checkSanity()){
+    //       SpriteGroup* tgt = new SpriteGroup{groups[i]->windows};
+    //       SpriteGroup::deepCopy(groups[i], tgt);
+
+    //       for(int j = 0; j < groups[i]->windows.size(); j++){
+    //         Window* win = Window::getWindow(groups[i]->windows[j]);
+
+    //         if(
+    //           win->buffer.writeBuffer.updSpriteGroup
+    //           [win->clampLayerIndex(groups[i]->layer)].find((void*)&groups[i]) !=
+    //           win->buffer.writeBuffer.updSpriteGroup
+    //           [win->clampLayerIndex(groups[i]->layer)].end())
+    //           { delete win->buffer.writeBuffer.updSpriteGroup
+    //             [win->clampLayerIndex(groups[i]->layer)][(void*)&groups[i]];
+    //           }
+
+    //         win->buffer.writeBuffer.updSpriteGroup
+    //         [win->clampLayerIndex(groups[i]->layer)]
+    //         .emplace((void*)&groups[i], tgt);
+    //       }
+    //     }
+    //   }
+    // }
  
-    void SuperGroup::update(SuperGroup* group){
-      if(group->checkSanity()){
-        SuperGroup* tgt = new SuperGroup(group->windows);
-        SuperGroup::deepCopy(group, tgt);
+    void SuperGroup::update(std::vector<SuperGroup*> groups){
+      for(int i = 0; i < groups.size(); i++){
+        // if(groups[i]->checkSanity()){
+          for(int j = 0; j < groups[i]->windows.size(); j++){
 
-        for(int i = 0; i < group->windows.size(); i++){
-          Window* win = Window::getWindow(group->windows[i]);
-
-          if(win->buffer.writeBuffer.updSuperGroup.find((void*)&group) !=
-             win->buffer.writeBuffer.updSuperGroup.end())
-             {delete win->buffer.writeBuffer.updSuperGroup[(void*)&group];
-             }
-          win->buffer.writeBuffer.updSuperGroup
-          .emplace((void*)&group, tgt);
+            Window* win = Window::getWindow(groups[i]->windows[j]);
+            win->buffer.writeBuffer.ptrSuperGroup.emplace((void*)groups[i]->self, groups[i]);
+          }
         }
-      }
+      // }
     }
+
+    
 
     // void Text::update(Text* image){
     //   if(image->checkSanity()){
@@ -182,31 +179,35 @@ namespace MTR{
     //     }
     //   }
     // }
+      // sprites.erase(std::remove(sprites.begin(), sprites.end(), spr), sprites.end());
 
-    void Layer::update(Layer layer){
-      if(layer.windows.size() != 0){
-        for(int i = 0; i < layer.windows.size(); i++){
-          Window::getWindow(layer.windows[i])->
-          buffer.writeBuffer.updLayer[layer.layerNumber] = layer;
+    void Layer::update(Layer* layer){
+      if(layer->windows.size() != 0){
+        for(int i = 0; i < layer->windows.size(); i++){
+
+          Window::getWindow(layer->windows[i])->
+          buffer.writeBuffer.ptrLayer.emplace((void*)layer->self, layer);
         }
       }
     }
 
     // MANIPULATION
     void Image::setCrop(Bounds crop){
-        area = crop;
+      area = crop;
 
-        bounds.box.width  = crop.box.width ;
-        bounds.box.height = crop.box.height;
+      bounds.box.width  = crop.box.width ;
+      bounds.box.height = crop.box.height;
 
-        srcRect.w = crop.box.width;
-        srcRect.h = crop.box.height;
-        srcRect.x = crop.pos.x;
-        srcRect.y = crop.pos.y;
+      srcRect.w = crop.box.width;
+      srcRect.h = crop.box.height;
+      srcRect.x = crop.pos.x;
+      srcRect.y = crop.pos.y;
 
-        tgtRect.w = crop.box.width;
-        tgtRect.h = crop.box.height;
-      }
+      tgtRect.w = crop.box.width;
+      tgtRect.h = crop.box.height;
+
+      surfaceFrSpriteSheet = true;
+    }
       
     // TODO :: FIGURE OUT SOMETHING! (this looks unprefeesional!)
     bool Renderable::checkSanity(){
@@ -236,11 +237,22 @@ namespace MTR{
       );
     }
 
-    void Renderable::group(SuperGroup* supG){
-      ownerGroup = supG;
-      supG->refreshBounds(this);
-      refreshRotCenter();
-    }
+    // void Renderable::subscribeTo(SuperGroup supG){
+    //   ownerGroup = &supG;
+    //   supG->updateBounds(this);
+    //   refreshRotCenter(supG);
+    // }
+
+    // void Image::subscribeTo(SpriteGroup* sG){
+    //   this->Renderable::subscribeTo(sG);
+    //   sG->placeSprite(this);
+    // }
+
+
+    // void SpriteGroup::subscribeTo(SuperGroup* supG){
+    //   ownerGroup = supG;
+
+    // }
 
     bool Renderable::addToQueue(){
       if(!isQueued){
@@ -250,69 +262,127 @@ namespace MTR{
       return false;
     }
 
-    void Renderable::refreshRotCenter(){
+    void Renderable::refreshRotCenter(SuperGroup* supG){
       if(angleFrSuper){
         rotCenter.x =
-        ownerGroup->bounds.box.width / 2;
+        supG->bounds.box.width / 2;
         rotCenter.y =
-        ownerGroup->bounds.box.height / 2;
+        supG->bounds.box.height / 2;
       }
     }
 
     void Image::group(SpriteGroup* sG, std::vector<Image*> imgs){
       for(int i = 0; i < imgs.size(); i++){
-        imgs[i]->Renderable::group(sG);
+        imgs[i]->ownerGroup    = sG->self;
+        imgs[i]->ownerGroupObj = sG;
+        sG->updateBounds(imgs[i]);
+        // imgs[i]->Renderable::subscribeTo(sG);
+        imgs[i]->refreshRotCenter(sG);
       }
       sG->placeSprites(imgs);
     }
 
-    void Image::group(SpriteGroup* sG){
-      this->Renderable::group(sG);
-      sG->placeSprite(this);
+    int SuperGroup::groupSuper(std::vector<SuperGroup*> spGs, bool setCenter){
+      if(!any_of(pool.begin(), pool.end(), [&](const SuperGroup* supG) {return supG == this;}
+      )){
+        pool.push_back(this);
+      }
+
+      for(int i = 0; i < spGs.size(); i++){
+        // this->useCount++;
+
+        childs.push_back(spGs[i]);
+        spGs[i]->angleFrSuper = setCenter;
+        spGs[i]->ownerGroup = this->self;
+        this->updateBounds(spGs[i]);
+        refreshRotCenter(this);
+        // spGs[i]->subscribeTo(this);
+      }
+      int supGindex = 0;
+      for(supGindex = 0; supGindex < childs.size(); supGindex++){
+        if(pool[supGindex] == this) break;
+      } 
+
+      return supGindex;
     }
 
-    void SpriteGroup::refreshBounds(Renderable* rend){
+    void SuperGroup::unGroup(std::vector<SuperGroup*> spGs){
+      for(int i = 0; i < spGs.size(); i++){
+
+        // std::vector<SpriteGroup*>::iterator it;
+        int spGindex = 0;
+        for(spGindex = 0; spGindex < childs.size(); spGindex++){
+          if(&(childs[spGindex]) == &(spGs[i])) break;
+        } 
+        if(spGindex != childs.size()){
+          delete childs[spGindex];
+          childs.erase(childs.begin()+spGindex);
+        }  
+
+        spGs[i]->angleFrSuper = false  ;
+        spGs[i]->ownerGroup   = nullptr;
+
+        refreshBounds();
+
+      }
+      if(this->childs.size() == 0) delete this;
+    }
+    void SpriteGroup::refreshBounds(){
       Vec2 oldPos = bounds.pos;
-      SuperGroup::refreshBounds(rend);
+
+      bounds = {0,0,0,0};
+      for(int i = 0; i < sprites.size(); i++){
+        SpriteGroup::updateBounds(sprites[i]);
+      }
 
       if(bounds.pos != oldPos && !ignoreCamera){
-        worldPos.x -= bounds.pos.x - oldPos.x;
-        worldPos.y -= bounds.pos.y - oldPos.y;
+        worldPos.x += bounds.pos.x - oldPos.x;
+        worldPos.y += bounds.pos.y - oldPos.y;
       }
+      // careful not modifying this before previous if
+      bounds.pos.x += bounds.pos.x - oldPos.x;
+      bounds.pos.y += bounds.pos.y - oldPos.y;
     }
+
+    void SuperGroup::refreshBounds(){
+      Vec2 oldPos = bounds.pos;
+
+      bounds = {0,0,0,0};
+      for(int i = 0; i < childs.size(); i++){
+        SuperGroup::updateBounds(childs[i]);
+      }
+
+      bounds.pos.x += bounds.pos.x - oldPos.x;
+      bounds.pos.y += bounds.pos.y - oldPos.y;
+    }
+
     void SpriteGroup::placeSprites(std::vector<MTR::RND::Image*> spr){
-      sprites.insert(sprites.end(), spr.begin(), spr.end());
       for(int i = 0; i < spr.size(); i++){
-        MTR::RND::Image* img = new MTR::RND::Image(spr[i]->windows);
-        MTR::RND::Image::deepCopy(spr[i], img);
-
-        // if(spritePTRs.find((void*)&spr[i]) !=
-        // spritePTRs.end()) delete spritePTRs[(void*)&spr[i]];
-
-        spritePTRs.emplace((void*)&spr[i], img);
+        sprites.push_back(spr[i]);
+        spriteDfr.emplace((void*)spr[i]->self, *spr[i]);
       }
     }
 
     void SpriteGroup::placeSprite(MTR::RND::Image* spr){
       sprites.push_back(spr);
-      MTR::RND::Image* img = new MTR::RND::Image(spr->windows);
-      MTR::RND::Image::deepCopy(spr, img);
-
-      if(spritePTRs.find((void*)&spr) !=
-        spritePTRs.end()) delete spritePTRs[(void*)&spr];
-
-      spritePTRs.emplace((void*)&spr, img);
+      spriteDfr.emplace((void*)spr->self, *spr);
     }
     
     void SpriteGroup::removeSprite(MTR::RND::Image* spr){
+      // delete spr;
       sprites.erase(std::remove(sprites.begin(), sprites.end(), spr), sprites.end());
-      spritePTRs[(void*)&(spr)]->pendingErase = true;
+      std::map<void *, MTR::RND::Image>::iterator it = spriteDfr.find((void*)&spr);
+      if(it == spriteDfr.end()){
+
+      } else {
+        it->second.pendingErase = true;
+      }
+      // (spriteDfr[(void*)&spr]).pendingErase = true;
     }
 
     void SpriteGroup::removeSprites(std::vector<MTR::RND::Image*> spr){
       for(int i = 0; i < spr.size(); i++){
-        sprites.erase(std::remove(sprites.begin(), sprites.end(), spr[i]), sprites.end());
-        spritePTRs[(void*)&(spr[i])]->pendingErase = true;
+        removeSprite(spr[i]);
       }
     }
 
@@ -320,72 +390,81 @@ namespace MTR{
     //   sprites.emplace(ptr, spr);
     // }    
 
-    void SuperGroup::refreshBounds(Renderable* rend){
+    void SuperGroup::updateBounds(Renderable* rend){
       // Vec2 minOffset = {INT_MAX,INT_MAX};
       // Box groupBox = {0,0};
       bounds.box.width  = 
-      std::max(rend->bounds.box.width , bounds.box.width  + bounds.pos.x);
+      std::max(rend->bounds.box.width  + rend->bounds.pos.x, bounds.box.width  + bounds.pos.x);
       bounds.box.height = 
-      std::max(rend->bounds.box.height, bounds.box.height + bounds.pos.y);
+      std::max(rend->bounds.box.height + rend->bounds.pos.y, bounds.box.height + bounds.pos.y);
 
-      Vec2 oldPos = bounds.pos;
+      // Vec2 oldPos = bounds.pos;
       // TODO :: WorldPos?
       bounds.pos.x = 
-      std::min(rend->bounds.pos.x, bounds.pos.x);
+      std::min(bounds.pos.x, bounds.pos.x + (rend->bounds.pos.x - bounds.pos.x));
       bounds.pos.y = 
-      std::min(rend->bounds.pos.y, bounds.pos.y);
-    }
-
-    void Renderable::deepCopy(Renderable* source, Renderable* target){
-      target->bounds       = source->bounds       ;
-      target->windows      = source->windows      ;
-      target->hidden       = source->hidden       ;
-      target->angle        = source->angle        ;
-      target->rotCenter    = source->rotCenter    ;
-      target->zoomCenter   = source->zoomCenter   ;
-      target->zoom         = source->zoom         ;
-      target->flip         = source->flip         ;
-      target->angleFrSuper = source->angleFrSuper ;
-      target->ownerGroup   = source->ownerGroup   ;
-    }
-
-    void Image::deepCopy(Image* source, Image* target){
-        Renderable::deepCopy(source, target);
-
-        target->area     = source->area;
-        target->layer    = source->layer;
-        target->tgtRect  = source->tgtRect;
-        target->srcRect  = source->srcRect;
-        target->fileName = source->fileName;
-        target->textures = source->textures;
+      std::min(bounds.pos.y, bounds.pos.y + (rend->bounds.pos.y - bounds.pos.y));
     }
 
 
-    void SpriteGroup::deepCopy(SpriteGroup* source, SpriteGroup* target){
-      SuperGroup::deepCopy(source, target);
+    // void Renderable::deepCopy(Renderable* source, Renderable* target){
+    //   target->bounds       = source->bounds       ;
+    //   target->windows      = source->windows      ;
+    //   target->hidden       = source->hidden       ;
+    //   target->angle        = source->angle        ;
+    //   target->rotCenter    = source->rotCenter    ;
+    //   target->zoomCenter   = source->zoomCenter   ;
+    //   target->zoom         = source->zoom         ;
+    //   target->flip         = source->flip         ;
+    //   target->angleFrSuper = source->angleFrSuper ;
+    //   target->ownerGroup   = source->ownerGroup   ;
+    // }
 
-      target->layer        = source->layer;
-      target->ignoreCamera = source->ignoreCamera;
-      target->worldPos     = source->worldPos;
-      target->spritePTRs   = source->spritePTRs;
-    }
+    // void Image::deepCopy(Image* source, Image* target){
+    //     Renderable::deepCopy(source, target);
+
+    //     target->area     = source->area;
+    //     target->layer    = source->layer;
+    //     target->tgtRect  = source->tgtRect;
+    //     target->srcRect  = source->srcRect;
+    //     target->fileName = source->fileName;
+    //     target->textures = source->textures;
+    // }
 
 
-    void SuperGroup::deepCopy(SuperGroup* source, SuperGroup* target){
-        Renderable::deepCopy(source, target);
-    }
+    // void SpriteGroup::deepCopy(SpriteGroup* source, SpriteGroup* target){
+    //   SuperGroup::deepCopy(source, target);
 
-    void Text::deepCopy(Text* source, Text* target){
-        Image::deepCopy(source, target);
+    //   target->layer        = source->layer;
+    //   target->ignoreCamera = source->ignoreCamera;
+    //   target->worldPos     = source->worldPos;
+    //   target->spriteDfr    = source->spriteDfr;
+    // }
 
-        target->font      = source->font;
-        target->size      = source->size;
-        target->textColor = source->textColor;
-    }
+
+    // void SuperGroup::deepCopy(SuperGroup* source, SuperGroup* target){
+    //     Renderable::deepCopy(source, target);
+    // }
+
+    // void Text::deepCopy(Text* source, Text* target){
+    //     Image::deepCopy(source, target);
+
+    //     target->font      = source->font;
+    //     target->size      = source->size;
+    //     target->textColor = source->textColor;
+    // }
 
 
   }
 
+    // DeferBuffer& DeferBuffer::operator<<(DeferBuffer&& old_obj){
+    //   Buffer::addUpdates(&old_obj, this);
+
+    //   // dfrLayer       = old_obj.dfrLayer      ;
+    //   // dfrSpriteGroup = old_obj.dfrSpriteGroup;
+    //   // dfrSuperGroup  = old_obj.dfrSuperGroup ;
+    //   return *this;
+    // };
 
 }
 

@@ -4,33 +4,102 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <utility>
 
 
-#include "renderUpdates.h"
+#include "layer.h"
+#include "image.h"
+#include "text.h"
+#include "spriteGroup.h"
+#include "superGroup.h"
+// #include "identifier.h"
+
 
 namespace MTR{
+
+  class DeferBuffer{
+    public:
+                std::map<void*, MTR::RND::Layer      > dfrLayer      ;
+    std::vector<std::map<void*, MTR::RND::SpriteGroup>> dfrSpriteGroup;
+                std::map<void*, MTR::RND::SuperGroup >  dfrSuperGroup ;
+
+    DeferBuffer(int layers){
+      dfrLayer       =             std::map<void*, MTR::RND::Layer       > ();
+      dfrSpriteGroup = std::vector<std::map<void*, MTR::RND::SpriteGroup >>(layers);
+      dfrSuperGroup  =             std::map<void*, MTR::RND::SuperGroup  > ();
+    };
+
+    DeferBuffer(){};
+
+    DeferBuffer& operator<<(DeferBuffer&& old_obj);
+
+    ~DeferBuffer(){}
+    // DeferBuffer& operator=(DeferBuffer&& other){
+    //   if(this != &other){
+    //     dfrLayer       = other.dfrLayer      ;
+    //     dfrSpriteGroup = other.dfrSpriteGroup;
+    //     dfrSuperGroup  = other.dfrSuperGroup ;
+    //   }
+    //   return *this;
+    // }
+
+    // DeferBuffer operator=(DeferBuffer&& other){
+    //   DeferBuffer dfB = DeferBuffer(**other);
+    //   std::swap(*this, dfB);
+    //   return *this;
+    // }
+  };
+
+  class WriteBuffer : public DeferBuffer{
+    public:
+                std::map<void*, MTR::RND::Layer      *>  ptrLayer      ;
+    std::vector<std::map<void*, MTR::RND::SpriteGroup*>> ptrSpriteGroup;
+                std::map<void*, MTR::RND::SuperGroup *>  ptrSuperGroup ;
+
+    WriteBuffer(int layers) : DeferBuffer(layers){
+      ptrLayer       =             std::map<void*, MTR::RND::Layer      *> ();
+      ptrSpriteGroup = std::vector<std::map<void*, MTR::RND::SpriteGroup*>>(layers);
+      ptrSuperGroup  =             std::map<void*, MTR::RND::SuperGroup *> ();
+    };
+
+    WriteBuffer(){};
+
+    // WriteBuffer(const WriteBuffer& old_obj) : DeferBuffer((DeferBuffer&)old_obj){};
+
+  };
+
+  class RenderUpdates{
+    public:
+    enum updType{
+      LAYER,
+      SPRITEGROUP,
+      SUPERGROUP,
+      LENGTH
+    };
+  };
+
 
   class Buffer{
     public:
     // Game loop moves the contents of write to swap during a lock using a simple = (then deleting the contents of write)
     // Render loop moves the content of swap to read during a lock using moveBuffer
     // Therefore (write -> [swap) -> read]
-    RenderUpdates writeBuffer;
-    RenderUpdates readBuffer ;
-    RenderUpdates swapBuffer ;
+    WriteBuffer writeBuffer; // Contains only updates
+    // DeferBuffer swapBuffer ; // Contains only updates
+    DeferBuffer readBuffer; // Contains all that is drawn
 
     Buffer(int layers){
-      writeBuffer = RenderUpdates(layers);
-      readBuffer  = RenderUpdates(layers);
-      swapBuffer  = RenderUpdates(layers);
+      writeBuffer = WriteBuffer(layers);
+      readBuffer  = DeferBuffer(layers);
+      // swapBuffer  = DeferBuffer(layers);
     }
 
     Buffer(){};
 
     // Incomplete(SpriteGroup) or complete(SuperGroup/layer) deepCopy from source to target, deleting the contents of source
     // This is used during a mutex lock on the display thread loop, before each call to "display()"
-    static void moveBuffer(RenderUpdates* source, RenderUpdates* target);
-    static void cleanBuffer(RenderUpdates* buffer);
+    static void addUpdates(WriteBuffer* source, DeferBuffer* target);
+    // static void cleanBuffer(WriteBuffer* buffer);
   };
 }
 

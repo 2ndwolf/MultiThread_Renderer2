@@ -8,188 +8,99 @@
 #include "layer.h"
 
 #include "buffer.h"
-#include "renderUpdates.h"
+// #include "renderUpdates.h"
 
 namespace MTR{
 
 
-  void Buffer::moveBuffer(RenderUpdates* source, RenderUpdates* target){
+  void Buffer::addUpdates(WriteBuffer* source, DeferBuffer* target){
+    // TODO :: CHECK LAYER QUANTITY (vector sizes)
+    for(int i = 0; i < RenderUpdates::updType::LENGTH; i++){
+      switch(i){
+        case RenderUpdates::updType::LAYER:
+        {
+          // std::map<void*, MTR::RND::Layer      >::iterator Lit;
 
-    for(int layer = 0; layer < source->updLayer.size(); layer++){
-      for(int i = 0; i < RenderUpdates::updType::LENGTH; i++){
-        switch(i){
-          case RenderUpdates::updType::LAYER:
-          { 
-            // std::map<void*, FK::    Layer      >::iterator it;
-            // for(it  = source->updLayer[layer].begin();
-            //     it != source->updLayer[layer].end()  ; it++){
-            //     target->updLayer[layer].emplace(it->first, it->second);
+          // Lit = source->dfrLayer.begin();
+          // while(Lit != source->dfrLayer.end()){
+          // std::map<void*, MTR::RND::Layer*>::iterator it;
+          // for(it  = source->ptrLayer.begin();
+          //   it != source->ptrLayer.end()  ; it++){
+          //   // if(Lit->second.isDue){
+              // target->dfrLayer = source->dfrLayer;
+          std::map<void*, MTR::RND::Layer*>::iterator it;
+          for(it  = source->ptrLayer.begin();
+              it != source->ptrLayer.end()  ; it++){
+
+
+              target->dfrLayer.emplace(it->second->self, *it->second);
+          }
+              // target->dfrLayer[Lit->first] = RND::Layer(std::move(Lit->second));
             // }
-                      // target->updLayer[layer] = source->updLayer[layer];
-
-            // source->updLayer.erase(layer);
-            // source->updLayer[layer] 
-          }
-          break;
-// {          // case RenderUpdates::updType::SPRITE:
-//           // {
-//           //   std::map<void*, MTR::RND::Image*      >::iterator it;
-//           //   for(it  = source->updSprite[layer].begin();
-//           //       it != source->updSprite[layer].end  (); it++){
-
-//           //       MTR::RND::Image* img = new MTR::RND::Image();
-//           //       MTR::RND::Image::deepCopy(it->second, img);
-
-//           //       if(
-//           //         target->updSpriteGroup[layer].find((void*)&(it->second->ownerGroup))
-//           //         == target->updSpriteGroup[layer].end())
-//           //         {
-//           //         target->updSpriteGroup[layer].
-//           //         emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
-//           //         }
-
-//           //       if(
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites.end())
-
-//           //         { delete
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites[it->first];
-//           //         }
-
-
-//           //       target->updSpriteGroup[layer]
-//           //       [(void*)&(it->second->ownerGroup)]->
-//           //       placeSprite(it->first, img);
-
-//           //   }
-//           //   source->updSprite[layer].clear();
-//           // }
-//           // break;
-//           // case RenderUpdates::updType::TEXT:
-//           // {
-//           //   std::map<void*, MTR::RND::Text*      >::iterator it;
-//           //   for(it  = source->updText[layer].begin();
-//           //       it != source->updText[layer].end  (); it++){
-
-//           //       MTR::RND::Text* txt = new MTR::RND::Text();
-//           //       MTR::RND::Text::deepCopy(it->second, txt);
-
-//           //       if(
-//           //         target->updSpriteGroup[layer].find((void*)&(it->second->ownerGroup))
-//           //         == target->updSpriteGroup[layer].end())
-//           //         {
-//           //         target->updSpriteGroup[layer].
-//           //         emplace((void*)&(it->second->ownerGroup), new MTR::RND::SuperGroup());
-//           //         }
-
-//           //       if(
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites.find(it->first) !=
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites.end())
-
-//           //         { delete
-//           //         target->updSpriteGroup[layer]
-//           //         [(void*)&(it->second->ownerGroup)]->sprites[it->first];
-//           //         }
-
-
-//           //       target->updSpriteGroup[layer]
-//           // //       [(void*)&(it->second->ownerGroup)]->
-//           //       placeSprite(it->first, txt);
-
-
-//           //       // target->updSpriteGroup[layer]
-//           //       // [(void*)&(it->second.ownerGroup)].
-//           //       // placeSprite(it->first, &(it->second));
-
-//           //   }
-//           //   source->updText[layer].clear();
-//           // }
-//           // break;}
-          case RenderUpdates::updType::SPRITEGROUP:
-          { 
-            std::map<void*, MTR::RND::SpriteGroup*      >::iterator it;
-            for(it  = source->updSpriteGroup[layer].begin();
-                it != source->updSpriteGroup[layer].end()  ; it++){
-                MTR::RND::SpriteGroup* sG = new MTR::RND::SpriteGroup(
-                  it->second->windows
-                );
-                MTR::RND::SpriteGroup::deepCopy(it->second, sG);
-                // sG->sprites = target->updSpriteGroup[layer][it->first]->sprites;
-
-                // if(
-                //   target->updSpriteGroup[layer].find(it->first) !=
-                //   target->updSpriteGroup[layer].end())
-                //   { delete
-                //   target->updSpriteGroup[layer][it->first];
-                //   }
-
-                target->updSpriteGroup[layer][it->first] = sG;
-
-                delete it->second;
-
-            }
-if(source->updSpriteGroup[layer].size() != 0)
-            source->updSpriteGroup[layer].clear();
-          }
-          break;
-          case RenderUpdates::updType::SUPERGROUP:
-          { 
-            std::map<void*, MTR::RND::SuperGroup*      >::iterator it;
-            for(it  = source->updSuperGroup.begin();
-                it != source->updSuperGroup.end()  ; it++){
-
-                MTR::RND::SuperGroup* supG = new MTR::RND::SuperGroup(
-                  it->second->windows
-                );
-                MTR::RND::SuperGroup::deepCopy(it->second, supG);
-
-                if(
-                  target->updSuperGroup.find(it->first) !=
-                  target->updSuperGroup.end())
-                  { delete
-                  target->updSuperGroup[it->first];
-                  }
-
-                target->updSuperGroup[it->first] = supG;
-
-                delete source->updSpriteGroup[layer][it->first];
-
-            }
-
-            source->updSuperGroup.clear();
-          }
-          
-          break;
-
+            // Lit++;
+          // }
+          source->ptrLayer.clear();
         }
+        break;
+        case RenderUpdates::updType::SPRITEGROUP:
+        for(int layer = 0; layer < source->dfrSpriteGroup.size(); layer++)
+        { 
+          if(layer >= target->dfrSpriteGroup.size()) {
+            target->dfrSpriteGroup.push_back(std::map<void*, MTR::RND::SpriteGroup>());
+          }
+
+          std::map<void*, MTR::RND::SpriteGroup*>::iterator it;
+          for(it  = source->ptrSpriteGroup[layer].begin();
+              it != source->ptrSpriteGroup[layer].end()  ; it++){
+
+              void* bob = it->first;
+              target->dfrSpriteGroup[layer].emplace(it->second->self, *it->second);
+          }
+          source->ptrSpriteGroup[layer].clear();
+        }
+        break;
+        case RenderUpdates::updType::SUPERGROUP:
+        { 
+          std::map<void*, MTR::RND::SuperGroup*>::iterator it;
+          for(it  = source->ptrSuperGroup.begin();
+              it != source->ptrSuperGroup.end()  ; it++){
+
+              // if((it->second).pendingErase){
+              //   target->dfrSuperGroup.erase(it);
+              //   continue;
+              // }
+
+              target->dfrSuperGroup.emplace(it->second->self, *it->second);
+          }
+          // target->dfrSuperGroup.merge(source->dfrSuperGroup);
+          source->ptrSuperGroup.clear();
+        }
+        
+        break;
+
       }
     }
   }
-  
-  void Buffer::cleanBuffer(RenderUpdates* buffer){
-    // std::map<void *, MTR::RND::SpriteGroup *>::iterator spGit;
-    // std::map<void *, MTR::RND::SuperGroup *>::iterator supGit;
-
-    for(int i = 0; i < buffer->updLayer.size(); i++){
-      // updLayer[i].clear();
-
-      // for(spGit = buffer->updSpriteGroup[i].begin();
-      //     spGit != buffer->updSpriteGroup[i].end(); spGit++){
-      //     // delete spGit->second;
-      // }
-      buffer->updSpriteGroup[i].clear();
-    }
-
-    // for(supGit  = buffer->updSuperGroup.begin();
-    //     supGit != buffer->updSuperGroup.end(); supGit++){
-    //     // delete supGit->second;
-    // }
-    buffer->updSuperGroup.clear();
-
-  }
 }
+  
+  // void Buffer::cleanBuffer(RenderUpdates* buffer){
+  //   // std::map<void *, MTR::RND::SpriteGroup *>::iterator spGit;
+  //   // std::map<void *, MTR::RND::SuperGroup *>::iterator supGit;
+
+  //   for(int i = 0; i < buffer->updLayer.size(); i++){
+  //     // updLayer[i].clear();
+
+  //     // for(spGit = buffer->updSpriteGroup[i].begin();
+  //     //     spGit != buffer->updSpriteGroup[i].end(); spGit++){
+  //     //     // delete spGit->second;
+  //     // }
+  //     buffer->updSpriteGroup[i].clear();
+  //   }
+
+  //   // for(supGit  = buffer->updSuperGroup.begin();
+  //   //     supGit != buffer->updSuperGroup.end(); supGit++){
+  //   //     // delete supGit->second;
+  //   // }
+  //   buffer->updSuperGroup.clear();
+
+  // }

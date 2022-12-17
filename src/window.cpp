@@ -29,6 +29,14 @@ namespace MTR{
           ){
 
     buffer = Buffer(layerCount);
+
+    for(int i = 0; i < layerCount; i++){
+      layers.push_back(new MTR::RND::Layer(false));
+      // Layer tmp();
+
+      buffer.writeBuffer.dfrLayer.emplace((void*)&(layers[i]), MTR::RND::Layer(false));
+    }
+
     bounds = {position, windowSize};
     this->hasOwnThread = hasOwnThread;
 
@@ -92,12 +100,28 @@ namespace MTR{
 
   void Window::mane(){
     while(!pendingErase) {
+      bool hasChanges = true;
 
       mutex.lock();
-      Buffer::moveBuffer(&buffer.swapBuffer, &buffer.readBuffer);
-      mutex.unlock();
+      // Buffer::moveBuffer(&buffer.swapBuffer, &buffer.readBuffer);
 
-      windows[name]->display();
+      buffer.readBuffer.dfrLayer.merge(buffer.writeBuffer.dfrLayer);
+      for(int i = 0; i < buffer.writeBuffer.dfrSpriteGroup.size(); i++){
+
+        if(i >= buffer.readBuffer.dfrSpriteGroup.size()) {
+          buffer.readBuffer.dfrSpriteGroup.push_back(std::map<void*, MTR::RND::SpriteGroup>());
+        }
+
+        buffer.readBuffer.dfrSpriteGroup[i].merge(buffer.writeBuffer.dfrSpriteGroup[i]);
+        // if(!buffer.readBuffer.dfrSpriteGroup[i].empty()){
+        //   break;
+        // }
+
+      }
+      buffer.readBuffer.dfrSuperGroup.merge(buffer.writeBuffer.dfrSuperGroup);
+
+      mutex.unlock();
+      if(hasChanges) windows[name]->display();
     }
     delete windows[name];
     windows.erase(name);
@@ -125,9 +149,12 @@ namespace MTR{
           else {
 
             multimutex.lock();
-            Buffer::moveBuffer(
-              &windows[it->first]->buffer.swapBuffer,
-              &windows[it->first]->buffer.readBuffer);
+            it->second->buffer.readBuffer.dfrLayer = it->second->buffer.writeBuffer.dfrLayer;
+            it->second->buffer.readBuffer.dfrSpriteGroup = it->second->buffer.writeBuffer.dfrSpriteGroup;
+            it->second->buffer.readBuffer.dfrSuperGroup = it->second->buffer.writeBuffer.dfrSuperGroup;
+            // Buffer::moveBuffer(
+            //   &windows[it->first]->buffer.swapBuffer,
+            //   &windows[it->first]->buffer.readBuffer);
             multimutex.unlock();
 
             // windows[it->first]->buffer.
@@ -142,141 +169,168 @@ namespace MTR{
 
   void Window::display(){
     SDL_RenderClear(context);
-    // RenderUpdates buffer.readBuffer = buffer.readBuffer;
+    // DeferBuffer buffer.readBuffer = buffer.readBuffer;
 
-    // std::vector<    MTR::RND::Layer       >::iterator Lit;
+    std::map<void*, MTR::RND::Layer      >::iterator Lit;
     // std::map<void*, FK::AT ::SuperGroup  >::iterator SupGit;
-    std::map<void*, MTR::RND::SpriteGroup*>::iterator SpGit;
-    std::map<void*, MTR::RND::Image      *>::iterator Iit;
+    std::map<void*, MTR::RND::SpriteGroup>::iterator SpGit;
+    std::map<void*, MTR::RND::Image      >::iterator Iit;
 
-    MTR::RND::Layer cLayer;
-    void* cSupG;
+    // MTR::RND::Layer cLayer;
+    void* cSupG = nullptr;
+
+    // TODO :: Cheack readbuffer layer quantity against
+    // writebuffer's and expand readbuffer accordingly
 
     // FK::AT::Renderable cR;
     // buffer.readBuffer
-    for(int layer = 0; layer < buffer.readBuffer.updLayer.size(); layer++){
+    int layer = 0;
+    Lit = buffer.readBuffer.dfrLayer.begin();
+    while(Lit != buffer.readBuffer.dfrLayer.end()){
       // this should contain only one layer
-      // for(Lit = buffer.readBuffer.updLayer[layer].begin(); Lit != buffer.readBuffer.updLayer[layer].end(); Lit++){
+      // for(Lit = buffer.readBuffer.dfrLayer[layer].begin(); Lit != buffer.readBuffer.dfrLayer[layer].end(); Lit++){
         // cLayer = Lit->second;
-        cLayer = buffer.readBuffer.updLayer[layer];
+      // Lit->second = Lit->second;
+
       // }
-      if(cLayer.hidden) continue;
+      // if(Lit->second.pendingErase){
 
-      SpGit  = buffer.readBuffer.updSpriteGroup[layer].begin();
-      while(
-          SpGit != buffer.readBuffer.updSpriteGroup[layer].end()){
-        // REVIEW THIS
-        // If the spriteGroup has a pending erase, delete all sprite members
-        if(SpGit->second->pendingErase){
-          // std::map<void*, MTR::RND::Image*>::iterator fIT;
-          // for(fIT = SpGit->second->spritePTRs.begin();
-          // fIT != SpGit->second->spritePTRs.end();
-          // fIT++) delete fIT->second;
+      // }
+      if(Lit->second.hidden) continue;
+      if(!buffer.readBuffer.dfrSpriteGroup[layer].empty()){
 
-          // SpGit->second->spritePTRs.clear();
-
-          // The above is taken
-          // delete SpGit->second;
-          SpGit = buffer.readBuffer.updSpriteGroup[layer].erase(SpGit);
-
-          continue;
-        }
-
-        if(SpGit->second->hidden) {
-          SpGit++;
-          continue;
-        }
-        // cSpG  = Rit->second.ownerGroup;
-        Vec2 superOffsets = {0,0};
-        if(buffer.readBuffer.updSuperGroup.find(SpGit->first) != buffer.readBuffer.updSuperGroup.end()){
-          cSupG = buffer.readBuffer.updSuperGroup[SpGit->first]->ownerGroup;
-        } else cSupG = nullptr;
-
-        while(cSupG != nullptr){
-          if(buffer.readBuffer.updSuperGroup[cSupG]->hidden) break;
-          superOffsets.x += buffer.readBuffer.updSuperGroup[cSupG]->bounds.pos.x;
-          superOffsets.y += buffer.readBuffer.updSuperGroup[cSupG]->bounds.pos.y;
-          cSupG           = buffer.readBuffer.updSuperGroup[cSupG]->ownerGroup;
-        }
-        if(cSupG != nullptr && buffer.readBuffer.updSuperGroup[cSupG]->hidden){
-          SpGit++;
-          continue;
-        }   
-
-
-        Iit  = SpGit->second->spritePTRs.begin();
+        SpGit  = buffer.readBuffer.dfrSpriteGroup[layer].begin();
         while(
-          Iit != SpGit->second->spritePTRs.end()
-          // ;Iit++
-          ){
-          if(Iit->second->pendingErase){
-            // for(SDL_Texture* tex : )
-            SDL_DestroyTexture(Iit->second->textures[name]);
+            SpGit != buffer.readBuffer.dfrSpriteGroup[layer].end()){
+          // REVIEW THIS
+          // If the spriteGroup has a pending erase, delete all sprite members
+          if(SpGit->second.pendingErase){
+            // SpGit->second.spriteDfr.clear();
+
+            SpGit = buffer.readBuffer.dfrSpriteGroup[layer].erase(SpGit);
+
+            continue;
+          }
+
+          if(SpGit->second.hidden) {
+            SpGit++;
+            continue;
+          }
+          // cSpG  = Rit->second.ownerGroup;
+          Vec2 superOffsets = {0,0};
+          if(buffer.readBuffer.dfrSuperGroup.find(SpGit->second.ownerGroup) != buffer.readBuffer.dfrSuperGroup.end()){
+            cSupG = SpGit->second.ownerGroup;
+          } else cSupG = nullptr;
+
+          bool supGHidden = false;
+          while(cSupG != nullptr){
+            std::map<void *, MTR::RND::SuperGroup>::iterator supGit = buffer.readBuffer.dfrSuperGroup.find(cSupG);
+            if(supGit!=buffer.readBuffer.dfrSuperGroup.end()){
+              if(supGit->second.hidden) {
+                supGHidden = true;
+                break;
+              }
+              superOffsets.x += supGit->second.bounds.pos.x;
+              superOffsets.y += supGit->second.bounds.pos.y;
+              cSupG           = supGit->second.ownerGroup;
+            } else break;
+          }
+          if(cSupG != nullptr && supGHidden){
+            SpGit++;
+            continue;
+          }   
+
+
+          Iit  = SpGit->second.spriteDfr.begin();
+          while(
+            Iit != SpGit->second.spriteDfr.end()
+            // ;Iit++
+            ){
+            if(Iit->second.pendingErase){
+              // for(SDL_Texture* tex : )
+              if(Iit->second.texture != nullptr) SDL_DestroyTexture(Iit->second.texture);
+              // }
+              Iit = SpGit->second.spriteDfr.erase(Iit);
+              continue;
+            } else if(Iit->second.layer != layer){
+              Iit = SpGit->second.spriteDfr.erase(Iit);
+              continue;
+            }
+            if(Iit->second.hidden) {
+              Iit++;
+              continue;
+            }
+            if(Iit->second.surfaceUpdated){
+
+              Iit->second.texture = SDL_CreateTextureFromSurface(Window::getWindow(name)->getContext(), SUR::surfaces[Iit->second.fileName].sur);
+              if(Iit->second.texture == nullptr) SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error loading image", SDL_GetError(), NULL);
+
+              if(!Iit->second.surfaceFrSpriteSheet){
+                SDL_QueryTexture(Iit->second.texture, NULL, NULL, &Iit->second.area.box.width, &Iit->second.area.box.height);
+              }
+              Iit->second.surfaceUpdated = false;
+
+            }
+
+            Vec2 screenPosCam = {0,0};
+            if(!SpGit->second.ignoreCamera){
+              screenPosCam = 
+              {SpGit->second.worldPos.x - camPos.x,
+              SpGit->second.worldPos.y - camPos.y};
+            }
+
+            Vec2 newPos = {
+              Lit->second.bounds.pos.x                              +
+              Iit->second.bounds.pos.x                         + 
+              SpGit->second.bounds.pos.x                       +
+              superOffsets.x                                   +
+              screenPosCam.x,
+
+              Lit->second.bounds.pos.y                              +
+              Iit->second.bounds.pos.y                         + 
+              SpGit->second.bounds.pos.y                       +
+              superOffsets.y                                   +
+              screenPosCam.y
+              };
+            
+            // Crude culling
+            // if((newPos.x + Iit->second.bounds.box.width  < 0 &&
+            //     newPos.y + Iit->second.bounds.box.height < 0) ||
+            //     (newPos.x > bounds.box.width && newPos.y > bounds.box.height)){
+            //   Iit++;
+            //   continue;
             // }
-            Iit = SpGit->second->spritePTRs.erase(Iit);
-            continue;
-          } else if(Iit->second->layer != layer){
-            Iit = SpGit->second->spritePTRs.erase(Iit);
-            continue;
-          }
-          if(Iit->second->hidden) {
+
+            Iit->second.tgtRect.x = newPos.x;
+            Iit->second.tgtRect.y = newPos.y;
+
+            bool hasRotCenter = false;
+            Vec2 rotCenter = Iit->second.rotCenter;
+            if(rotCenter.x != INT_MAX && rotCenter.y != INT_MAX){
+              hasRotCenter = true;
+            }
+            
+            somethingToDraw = true;
+            SDL_RenderCopyEx(context,
+            Iit->second.texture,
+            &(Iit->second.srcRect), &(Iit->second.tgtRect),
+            Iit->second.angle,
+            hasRotCenter ? (SDL_Point*) &(rotCenter) : nullptr,
+            (SDL_RendererFlip) Iit->second.flip);
+
             Iit++;
-            continue;
+            
           }
-
-          Vec2 screenPosCam = {0,0};
-          if(!SpGit->second->ignoreCamera){
-            screenPosCam = 
-            {SpGit->second->worldPos.x - camPos.x,
-             SpGit->second->worldPos.y - camPos.y};
-          }
-
-          Vec2 newPos = {
-            cLayer.offset.x                                   +
-            Iit->second->bounds.pos.x                         + 
-            SpGit->second->bounds.pos.x                       +
-            superOffsets.x                                    +
-            screenPosCam.x,
-
-            cLayer.offset.y                                   +
-            Iit->second->bounds.pos.y                         + 
-            SpGit->second->bounds.pos.y                       +
-            superOffsets.y                                    +
-            screenPosCam.y
-            };
-          
-          // Crude culling
-          // if((newPos.x + Iit->second->bounds.box.width  < 0 &&
-          //     newPos.y + Iit->second->bounds.box.height < 0) ||
-          //     (newPos.x > bounds.box.width && newPos.y > bounds.box.height)){
-          //   Iit++;
-          //   continue;
-          // }
-
-          Iit->second->tgtRect.x = newPos.x;
-          Iit->second->tgtRect.y = newPos.y;
-
-          bool hasRotCenter = false;
-          Vec2 rotCenter = Iit->second->rotCenter;
-          if(rotCenter.x != INT_MAX && rotCenter.y != INT_MAX){
-            hasRotCenter = true;
-          }
-          
-          somethingToDraw = true;
-          SDL_RenderCopyEx(context,
-          Iit->second->textures[name],
-          &(Iit->second->srcRect), &(Iit->second->tgtRect),
-          Iit->second->angle,
-          hasRotCenter ? (SDL_Point*) &(rotCenter) : nullptr,
-          (SDL_RendererFlip) Iit->second->flip);
-
-          Iit++;
+          SpGit++;
         }
-        SpGit++;
       }
+      layer++;
+      Lit++;
     }
 
-    if(somethingToDraw) SDL_RenderPresent(context);
+    if(somethingToDraw) {
+      SDL_RenderPresent(context);
+    }
     somethingToDraw = false;
   }
 
@@ -287,9 +341,7 @@ namespace MTR{
       if(it->second->hasOwnThread) it->second->mutex.lock();
       else multimutex.lock();
 
-      it->second->buffer.swapBuffer = it->second->buffer.writeBuffer;
-
-      Buffer::cleanBuffer(&(it->second->buffer.writeBuffer));
+      Buffer::addUpdates(&it->second->buffer.writeBuffer, &it->second->buffer.writeBuffer);
 
       if(it->second->hasOwnThread) it->second->mutex.unlock();
       else multimutex.unlock();
@@ -301,9 +353,10 @@ namespace MTR{
     if(windows[window]->hasOwnThread) windows[window]->mutex.lock();
     else multimutex.lock();
 
-    windows[window]->buffer.swapBuffer = windows[window]->buffer.writeBuffer;
+    // windows[window]->buffer.writeBuffer << std::move(windows[window]->buffer.writeBuffer);
+    Buffer::addUpdates(&windows[window]->buffer.writeBuffer, &windows[window]->buffer.writeBuffer);
 
-    Buffer::cleanBuffer(&(windows[window]->buffer.writeBuffer));
+    // Buffer::cleanBuffer(&(windows[window]->buffer.writeBuffer));
 
     if(windows[window]->hasOwnThread) windows[window]->mutex.unlock();
     else multimutex.unlock();

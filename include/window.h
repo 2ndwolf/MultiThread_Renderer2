@@ -11,6 +11,7 @@
 
 #include "buffer.h"
 #include "primitives.h"
+#include "layer.h"
 
 namespace MTR{
 
@@ -70,6 +71,8 @@ namespace MTR{
     void display();
     void close(){pendingErase = true;};
 
+    std::vector<MTR::RND::Layer*> layers;
+
     bool pendingErase = false; 
 
     SDL_Renderer* context;
@@ -88,11 +91,11 @@ namespace MTR{
     };
 
     bool layerInBounds(int layer){
-      return layer > 0 && layer < buffer.readBuffer.updLayer.size();
+      return layer > 0 && layer < buffer.readBuffer.dfrLayer.size();
     };
 
-    const int getLayerCount(){return buffer.readBuffer.updLayer.size();};
-    static const int getLayerCount(const std::string& windowName){return windows[windowName]->buffer.readBuffer.updLayer.size();};
+    const int getLayerCount(){return buffer.readBuffer.dfrLayer.size();};
+    static const int getLayerCount(const std::string& windowName){return windows[windowName]->buffer.readBuffer.dfrLayer.size();};
     const bool getHasOwnThread() {return hasOwnThread;};
 
     SDL_Renderer* getContext(){return context;}

@@ -1,7 +1,10 @@
 #ifndef _MTR_IMAGE_h_
 #define _MTR_IMAGE_h_
 
+#include <utility>
+
 #include <SDL.h>
+
 
 #include "renderable.h"
 #include "surfaces.h"
@@ -15,11 +18,15 @@ namespace MTR{
     class Image : public Renderable {
       public:
       std::string fileName = Defaults::placeHolder;
+      bool surfaceUpdated = true;
+      bool surfaceFrSpriteSheet = false;
+      SpriteGroup* ownerGroupObj = nullptr;
 
       // String is the window owner's name
-      std::map<std::string, SDL_Texture*> textures;
+      SDL_Texture* texture;
+      // std::map<void*, SDL_Texture*> dfrTex 
 
-      Bounds   area   = {0,0,0,0};
+      Bounds area = {0,0,0,0};
       int      layer  = 0;
       SDL_Rect tgtRect;
       SDL_Rect srcRect;
@@ -27,6 +34,80 @@ namespace MTR{
       Image(std::vector<std::string> pwindows):
       Renderable(pwindows)
       {};
+
+      // Image(){};
+
+      Image(const Image& old_obj) : Renderable(old_obj){
+        area     = old_obj.area    ;
+        layer    = old_obj.layer   ;
+        tgtRect  = old_obj.tgtRect ;
+        srcRect  = old_obj.srcRect ;
+        fileName = old_obj.fileName;
+        surfaceUpdated = old_obj.surfaceUpdated;
+        surfaceFrSpriteSheet = old_obj.surfaceFrSpriteSheet;
+      }
+
+      // Image(Image&& other) : Renderable((Renderable)other){
+      //   area     = other.area    ;
+      //   layer    = other.layer   ;
+      //   tgtRect  = other.tgtRect ;
+      //   srcRect  = other.srcRect ;
+      //   fileName = other.fileName;
+      //   // texture  = other.texture ;
+
+      //   other.area     = {0,0,0,0};
+      //   other.layer    = 0        ;
+      //   other.tgtRect  = {0,0,0,0};
+      //   other.srcRect  = {0,0,0,0};
+      //   other.fileName = ""       ;
+      //   other.texture  = nullptr  ;
+      // }
+
+      Image& operator=(const Image& other){
+
+        if(this!=&other){
+          Image(other).swap(*this);
+          // return tmp;
+        }
+        return *this;
+      }
+
+      void swap(Image& i){
+        std::swap(area    , i.area    );
+        std::swap(layer   , i.layer   );
+        std::swap(tgtRect , i.tgtRect );
+        std::swap(srcRect , i.srcRect );
+        std::swap(fileName, i.fileName);
+        std::swap(surfaceUpdated, i.surfaceUpdated);
+        std::swap(surfaceFrSpriteSheet, i.surfaceFrSpriteSheet);
+
+
+      }
+
+      Image& operator=(Image&& other){
+        if(this != &other){
+          Renderable::operator=(other);
+          area     = other.area    ;
+          layer    = other.layer   ;
+          tgtRect  = other.tgtRect ;
+          srcRect  = other.srcRect ;
+          fileName = other.fileName;
+          surfaceUpdated = other.surfaceUpdated;
+          surfaceFrSpriteSheet = other.surfaceFrSpriteSheet;
+
+          // texture  = other.texture ;
+
+          other.area     = {0,0,0,0};
+          other.layer    = 0        ;
+          other.tgtRect  = {0,0,0,0};
+          other.srcRect  = {0,0,0,0};
+          other.fileName = ""       ;
+          other.surfaceUpdated = false;
+          surfaceFrSpriteSheet = false;
+          // other.texture  = nullptr  ;
+        }
+        return *this;
+      }
 
       // overloaded by Text - sets the image or sheet used by the entity
       void setSurface(const std::string& fileName, bool fromSpriteSheet = false);
@@ -36,7 +117,7 @@ namespace MTR{
       // Group a set of ``Image``s with a ``SpriteGroup``
       static void group(SpriteGroup* sG, std::vector<Image*> imgs);
       // Group a single ``Image`` with a given ``SpriteGroup``
-      void group(SpriteGroup* sG);
+      // void subscribeTo(SpriteGroup* sG);
 
       // Copy constructor (operator=) cuz I'm a noob
       static void deepCopy(Image* source, Image* target);
