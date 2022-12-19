@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <utility>
 
@@ -18,15 +19,25 @@
 namespace MTR{
 
   class DeferBuffer{
+    // protected:
+    // struct cmpr {
+    //   // bool cmpr(void* a, void* b);
+    //   bool operator()(void* a, void* b) const {
+    //     return (intptr_t)a < (intptr_t)b;
+    //   }
+    // };
+
     public:
-                std::map<void*, MTR::RND::Layer      > dfrLayer      ;
-    std::vector<std::map<void*, MTR::RND::SpriteGroup>> dfrSpriteGroup;
-                std::map<void*, MTR::RND::SuperGroup >  dfrSuperGroup ;
+                std::          map<void*, MTR::RND::Layer           >  dfrLayer      ;
+    std::vector<std::          map<void*, MTR::RND::SpriteGroup     >> dfrSpriteGroup;
+                std::unordered_map<void*, MTR::RND::Image           >  dfrImage      ;
+                std::unordered_map<void*, MTR::RND::SuperGroup      >  dfrSuperGroup ;
 
     DeferBuffer(int layers){
-      dfrLayer       =             std::map<void*, MTR::RND::Layer       > ();
-      dfrSpriteGroup = std::vector<std::map<void*, MTR::RND::SpriteGroup >>(layers);
-      dfrSuperGroup  =             std::map<void*, MTR::RND::SuperGroup  > ();
+      dfrLayer       =             std::          map<void*, MTR::RND::Layer       > ();
+      dfrSpriteGroup = std::vector<std::          map<void*, MTR::RND::SpriteGroup >>(layers);
+      dfrImage       =             std::unordered_map<void*, MTR::RND::Image       > ();
+      dfrSuperGroup  =             std::unordered_map<void*, MTR::RND::SuperGroup  > ();
     };
 
     DeferBuffer(){};
@@ -51,15 +62,19 @@ namespace MTR{
   };
 
   class WriteBuffer : public DeferBuffer{
+
+
     public:
-                std::map<void*, MTR::RND::Layer      *>  ptrLayer      ;
-    std::vector<std::map<void*, MTR::RND::SpriteGroup*>> ptrSpriteGroup;
-                std::map<void*, MTR::RND::SuperGroup *>  ptrSuperGroup ;
+                std::          map<void*, MTR::RND::Layer      *      >  ptrLayer      ;
+    std::vector<std::          map<void*, MTR::RND::SpriteGroup*      >> ptrSpriteGroup;
+                std::          map<void*, MTR::RND::Image      *      >  ptrImage      ;
+                std::          map<void*, MTR::RND::SuperGroup *      >  ptrSuperGroup ;
 
     WriteBuffer(int layers) : DeferBuffer(layers){
-      ptrLayer       =             std::map<void*, MTR::RND::Layer      *> ();
-      ptrSpriteGroup = std::vector<std::map<void*, MTR::RND::SpriteGroup*>>(layers);
-      ptrSuperGroup  =             std::map<void*, MTR::RND::SuperGroup *> ();
+      ptrLayer       =             std::          map<void*, MTR::RND::Layer      * > ();
+      ptrSpriteGroup = std::vector<std::          map<void*, MTR::RND::SpriteGroup* >>(layers);
+      ptrImage       =             std::          map<void*, MTR::RND::Image      * > ();
+      ptrSuperGroup  =             std::          map<void*, MTR::RND::SuperGroup * > ();
     };
 
     WriteBuffer(){};
@@ -72,6 +87,7 @@ namespace MTR{
     public:
     enum updType{
       LAYER,
+      IMAGE,
       SPRITEGROUP,
       SUPERGROUP,
       LENGTH

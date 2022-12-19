@@ -4,6 +4,8 @@
 #include <string>
 #include <SDL.h>
 
+#define MAXLAYERS 64
+
 namespace MTR{
 
   namespace Defaults {

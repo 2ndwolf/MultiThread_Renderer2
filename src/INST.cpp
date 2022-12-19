@@ -11,13 +11,13 @@ namespace MTR{
 
   RND::Image* createImage(const std::string& fileName,
   Vec2 offset,
-  int layer,
+  // int layer,
   std::vector<std::string> windows){
     RND::Image* img = new RND::Image(windows);
 
     // img->windows    = windows;
     img->bounds.pos = offset ;
-    img->layer      = layer  ;
+    // img->layer      = layer  ;
 
     img->setSurface(fileName);
 
@@ -40,14 +40,14 @@ namespace MTR{
   RND::Image* createSprite(const std::string& fileName,
   std::vector<std::string> windows,
   Bounds crop,
-  Vec2 offset,
-  int layer
+  Vec2 offset
+  // int layer
   ){
     RND::Image* img = new RND::Image(windows);
 
     // img->windows    = windows;
     img->bounds.pos = offset ;
-    img->layer      = layer  ;
+    // img->layer      = layer  ;
 
     img->setSurface(fileName, true);
 
@@ -62,7 +62,7 @@ namespace MTR{
     SUR::Font font, 
     const std::string& text,
     Vec2 offset, 
-    int layer,
+    // int layer,
     std::vector<std::string> windows, 
     Color color){
     
@@ -72,7 +72,7 @@ namespace MTR{
     txt->bounds.pos = offset ;
     // txt->windows    = windows;
     txt->textColor  = color  ;
-    txt->layer      = layer  ;
+    // txt->layer      = layer  ;
 
     txt->setSurface(text);
 

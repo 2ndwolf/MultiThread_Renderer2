@@ -94,8 +94,8 @@ namespace MTR{
       return layer > 0 && layer < buffer.readBuffer.dfrLayer.size();
     };
 
-    const int getLayerCount(){return buffer.readBuffer.dfrLayer.size();};
-    static const int getLayerCount(const std::string& windowName){return windows[windowName]->buffer.readBuffer.dfrLayer.size();};
+    const int getLayerCount(){return buffer.writeBuffer.ptrSpriteGroup.size();};
+    // static const int getLayerCxount(const std::string& windowName){return windows[windowName]->buffer.readBuffer.dfrSpriteGroup.size();};
     const bool getHasOwnThread() {return hasOwnThread;};
 
     SDL_Renderer* getContext(){return context;}
@@ -109,6 +109,9 @@ namespace MTR{
     static void updateAll();
     static void updateOne(const std::string& window);
 
+    void expandLayersIf(const int& layers);
+
+    void updateReadBuffer();
   };
 
 }
